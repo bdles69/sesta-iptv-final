@@ -1,0 +1,2310 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NXST IPTV - Standard Edition</title>
+  <!-- HLS.js for Streaming m3u8 -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <!-- MPEG-TS direct playback (browser support still depends on codecs/CORS) -->
+  <script src="https://cdn.jsdelivr.net/npm/mpegts.js@latest"></script>
+  <!-- Shaka Player for MPEG-DASH (.mpd / .cenc.mpd) and browser EME DRM -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.12/shaka-player.compiled.js"></script>
+  <style>
+
+    [data-theme="dreamy-wonderland"] { --bg-color:#211b3a; --bg-gradient:linear-gradient(-45deg,#211b3a,#594a78,#b18dbb,#392d59); --header-bg:linear-gradient(180deg,#5d4b78,#211b3a); --border-color:#e7c9ed; --accent-color:#f4dff8; --card-bg:radial-gradient(circle,#6c5b88,#302647); --info-bg:linear-gradient(180deg,#4d3c68,#261d3b); --btn-bg:linear-gradient(180deg,#f4dff8,#b18dbb); --btn-text:#211b3a; --ticker-bg:#594a78; }
+    [data-theme="ice-edge"] { --bg-color:#071c2b; --bg-gradient:linear-gradient(-45deg,#071c2b,#123b55,#397d9b,#0b2639); --header-bg:linear-gradient(180deg,#164a67,#071c2b); --border-color:#8de5f5; --accent-color:#c9f7ff; --card-bg:radial-gradient(circle,#23627e,#0b2639); --info-bg:linear-gradient(180deg,#16465e,#092538); --btn-bg:linear-gradient(180deg,#c9f7ff,#55b6d0); --btn-text:#071c2b; --ticker-bg:#123b55; }
+
+    /* Moving Background Keyframes */
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    :root {
+      --bg-color: #20242a;
+      --bg-gradient: linear-gradient(-45deg, #20242a, #38414a, #59636b, #303840);
+      --header-bg: linear-gradient(180deg, #46515b 0%, #202830 100%);
+      --border-color: #aeb9c2;
+      --accent-color: #e3edf4;
+      --card-bg: radial-gradient(circle at center, #56636d 0%, #303a43 70%, #202830 100%);
+      --info-bg: linear-gradient(180deg, #46515b 0%, #303a43 50%, #202830 100%);
+      --btn-bg: linear-gradient(180deg, #e3edf4 0%, #aeb9c2 100%);
+      --btn-text: #202830;
+      --ticker-bg: #303a43;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      background: var(--bg-gradient);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #fff;
+      min-height: 100vh;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.3s ease;
+    }
+
+    [data-theme="mint-green"] {
+      --bg-color: #1b4d3e;
+      --bg-gradient: linear-gradient(-45deg, #0d261f, #1b4d3e, #2e8b57, #14382d, #235e4d);
+      --header-bg: linear-gradient(180deg, #235e4d 0%, #0f2b22 100%);
+      --border-color: #98ff98;
+      --accent-color: #e0f8e0;
+      --card-bg: radial-gradient(circle at center, #2e7d5d 0%, #1b4d3e 70%, #0d261f 100%);
+      --info-bg: linear-gradient(180deg, #24634f 0%, #14382d 50%, #0a211a 100%);
+      --btn-bg: linear-gradient(180deg, #98ff98 0%, #3cb371 100%);
+      --btn-text: #0a211a;
+      --ticker-bg: #14382d;
+    }
+
+    [data-theme="royal"] {
+      --bg-color: #05162b;
+      --bg-gradient: linear-gradient(-45deg, #020c17, #05162b, #0d2b52, #133a69, #0f3059);
+      --header-bg: linear-gradient(180deg, #0f3059 0%, #020b17 100%);
+      --border-color: #4da6ff;
+      --accent-color: #cce6ff;
+      --card-bg: radial-gradient(circle at center, #133a69 0%, #08213d 70%, #020c17 100%);
+      --info-bg: linear-gradient(180deg, #10335e 0%, #071c36 50%, #030b17 100%);
+      --btn-bg: linear-gradient(180deg, #4da6ff 0%, #1a66cc 100%);
+      --btn-text: #ffffff;
+      --ticker-bg: #0d2b52;
+    }
+
+    [data-theme="midnight-amethyst"] {
+      --bg-color: #1a0b2e;
+      --bg-gradient: linear-gradient(-45deg, #12031c, #1a0b2e, #4a154b, #591b6e, #381048);
+      --header-bg: linear-gradient(180deg, #381048 0%, #10051a 100%);
+      --border-color: #d883ff;
+      --accent-color: #f3ccff;
+      --card-bg: radial-gradient(circle at center, #591b6e 0%, #290b38 70%, #12031c 100%);
+      --info-bg: linear-gradient(180deg, #48145c 0%, #260a33 50%, #10031a 100%);
+      --btn-bg: linear-gradient(180deg, #f3ccff 0%, #b042db 100%);
+      --btn-text: #1a0b2e;
+      --ticker-bg: #381048;
+    }
+
+    [data-theme="emerald-nebula"] {
+      --bg-color: #031f18;
+      --bg-gradient: linear-gradient(-45deg, #01140f, #031f18, #0b5c45, #0f6e53, #094534);
+      --header-bg: linear-gradient(180deg, #094534 0%, #010f0c 100%);
+      --border-color: #00ffaa;
+      --accent-color: #b3ffdf;
+      --card-bg: radial-gradient(circle at center, #0f6e53 0%, #053b2d 70%, #01140f 100%);
+      --info-bg: linear-gradient(180deg, #0d5944 0%, #043024 50%, #01140f 100%);
+      --btn-bg: linear-gradient(180deg, #b3ffdf 0%, #00b377 100%);
+      --btn-text: #031f18;
+      --ticker-bg: #094534;
+    }
+
+    [data-theme="golden-obsidian"] {
+      --bg-color: #121212;
+      --bg-gradient: linear-gradient(-45deg, #0a0a0a, #121212, #2c2512, #4d4119, #3d3314);
+      --header-bg: linear-gradient(180deg, #3d3314 0%, #0a0a0a 100%);
+      --border-color: #ffd700;
+      --accent-color: #ffea80;
+      --card-bg: radial-gradient(circle at center, #4d4119 0%, #26210c 70%, #0d0b04 100%);
+      --info-bg: linear-gradient(180deg, #403615 0%, #211c0a 50%, #0a0803 100%);
+      --btn-bg: linear-gradient(180deg, #ffea80 0%, #cca100 100%);
+      --btn-text: #121212;
+      --ticker-bg: #3d3314;
+    }
+
+    [data-theme="ruby-sunset"] {
+      --bg-color: #26050b;
+      --bg-gradient: linear-gradient(-45deg, #140204, #26050b, #6e0f22, #8a172d, #540b19);
+      --header-bg: linear-gradient(180deg, #540b19 0%, #140204 100%);
+      --border-color: #ff5c77;
+      --accent-color: #ffccd4;
+      --card-bg: radial-gradient(circle at center, #8a172d 0%, #470814 70%, #1a0206 100%);
+      --info-bg: linear-gradient(180deg, #701224 0%, #3b0610 50%, #140204 100%);
+      --btn-bg: linear-gradient(180deg, #ffccd4 0%, #e60026 100%);
+      --btn-text: #26050b;
+      --ticker-bg: #540b19;
+    }
+
+
+    /* Golden Stage: warm parchment, carved wood and burgundy velvet */
+    [data-theme="golden-stage"] {
+      --bg-color: #c9a15c;
+      --bg-gradient:
+        radial-gradient(ellipse at 50% 12%, rgba(255,246,205,.75) 0%, rgba(255,246,205,0) 48%),
+        repeating-linear-gradient(45deg, rgba(104,64,31,.075) 0 1px, transparent 1px 13px),
+        repeating-linear-gradient(-45deg, rgba(255,244,204,.16) 0 1px, transparent 1px 13px),
+        linear-gradient(135deg, #f0d99b 0%, #d4b36f 48%, #b88b4d 100%);
+      --header-bg:
+        repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 2px, rgba(45,22,9,.035) 2px 4px),
+        linear-gradient(180deg, #95633b 0%, #633a24 48%, #3b2118 100%);
+      --border-color: #d6ad59;
+      --accent-color: #ffe6a0;
+      --card-bg:
+        radial-gradient(ellipse at 50% 0%, rgba(255,231,177,.17) 0%, transparent 62%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, rgba(0,0,0,.035) 1px 3px),
+        linear-gradient(145deg, #762330 0%, #56141f 58%, #310910 100%);
+      --info-bg:
+        repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 2px, rgba(39,18,8,.045) 2px 4px),
+        linear-gradient(180deg, #95633b 0%, #70452d 52%, #4b2b1e 100%);
+      --btn-bg: linear-gradient(180deg, #ffe8a0 0%, #d9a43e 48%, #a96819 100%);
+      --btn-text: #3b1d0a;
+      --ticker-bg: #633a24;
+    }
+
+    html[data-theme="golden-stage"] body {
+      color: #4a2b16;
+      background-color: #d7b978;
+      background-image: var(--bg-gradient);
+      background-size: auto;
+      background-attachment: fixed;
+      animation: none;
+    }
+
+    html[data-theme="golden-stage"] header,
+    html[data-theme="golden-stage"] .categories-bar,
+    html[data-theme="golden-stage"] .pagination-controls {
+      border-color: #b9853c;
+      box-shadow: 0 5px 12px rgba(54,29,12,.42), inset 0 1px 0 rgba(255,238,190,.28);
+    }
+
+    html[data-theme="golden-stage"] .brand-title {
+      color: #ffe6a0;
+      text-shadow: 0 2px 3px #32180b, 0 0 12px rgba(255,220,135,.25);
+    }
+
+    html[data-theme="golden-stage"] .theme-select {
+      background: #f7e6b8;
+      color: #432512;
+      border-color: #d6ad59;
+    }
+
+    html[data-theme="golden-stage"] .channels-section {
+      position: relative;
+      isolation: isolate;
+    }
+
+    /* Multiple soft beams create the stage-light wash above the channel wall. */
+    html[data-theme="golden-stage"] .channels-section::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      pointer-events: none;
+      inset: -38px -24px -12px;
+      background:
+        radial-gradient(ellipse 155px 330px at 12% 0%, rgba(255,239,184,.42) 0%, rgba(255,224,147,.16) 42%, transparent 78%),
+        radial-gradient(ellipse 175px 350px at 38% 0%, rgba(255,244,205,.34) 0%, rgba(255,224,147,.13) 44%, transparent 79%),
+        radial-gradient(ellipse 175px 350px at 65% 0%, rgba(255,239,184,.34) 0%, rgba(255,224,147,.13) 44%, transparent 79%),
+        radial-gradient(ellipse 155px 330px at 90% 0%, rgba(255,239,184,.40) 0%, rgba(255,224,147,.15) 42%, transparent 78%);
+      filter: blur(9px);
+      opacity: .95;
+    }
+
+    html[data-theme="golden-stage"] .channels-section > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    html[data-theme="golden-stage"] .categories-bar {
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 2px, rgba(35,16,7,.045) 2px 4px),
+        linear-gradient(180deg, #95633b 0%, #633a24 100%);
+    }
+
+    html[data-theme="golden-stage"] .cat-btn {
+      background: linear-gradient(180deg, #9b6940 0%, #633a24 100%);
+      color: #ffebbb;
+      border: 1px solid #d7ad60;
+      border-radius: 9px;
+      box-shadow: 0 3px 7px rgba(38,17,7,.45), inset 0 1px 0 rgba(255,238,190,.2);
+      text-shadow: 0 1px 2px #32180b;
+    }
+
+    html[data-theme="golden-stage"] .cat-btn.active,
+    html[data-theme="golden-stage"] .cat-btn:hover {
+      background: linear-gradient(180deg, #ffe6a0 0%, #d69b37 100%);
+      color: #48230d;
+      border-color: #fff0c2;
+      box-shadow: 0 0 13px rgba(255,218,126,.75), 0 3px 7px rgba(38,17,7,.4);
+      text-shadow: none;
+    }
+
+    html[data-theme="golden-stage"] .view-switcher {
+      background: rgba(49,25,13,.55);
+      border-color: #d6ad59;
+    }
+
+    html[data-theme="golden-stage"] .view-btn { color: #ffe6a0; }
+    html[data-theme="golden-stage"] .view-btn.active {
+      background: linear-gradient(180deg, #ffe6a0 0%, #d69b37 100%);
+      color: #48230d;
+    }
+
+    html[data-theme="golden-stage"] .mode-card .channel-card {
+      background: var(--card-bg);
+      border: 4px solid #bd8b42;
+      border-radius: 12px;
+      box-shadow:
+        0 7px 12px rgba(34,12,8,.72),
+        0 2px 3px rgba(255,228,164,.24),
+        inset 0 1px 0 rgba(255,238,190,.24),
+        inset 0 -7px 12px rgba(0,0,0,.25);
+    }
+
+    html[data-theme="golden-stage"] .mode-card .channel-card:hover {
+      border-color: #ffe6a0;
+      box-shadow:
+        0 10px 20px rgba(34,12,8,.76),
+        0 0 19px rgba(255,222,142,.68),
+        inset 0 1px 0 rgba(255,238,190,.3);
+    }
+
+    html[data-theme="golden-stage"] .channel-card.active {
+      border-color: #fff0bd !important;
+      box-shadow: 0 0 18px rgba(255,225,151,.9), 0 7px 14px rgba(34,12,8,.7) !important;
+    }
+
+    html[data-theme="golden-stage"] .card-name-bar {
+      background: linear-gradient(180deg, rgba(80,17,27,.96), rgba(48,7,13,.98));
+      border-top: 1px solid #d6ad59;
+      border-radius: 4px;
+    }
+
+    html[data-theme="golden-stage"] .card-name {
+      color: #ffe6a0;
+      text-shadow: 0 1px 3px #21070a;
+    }
+
+    html[data-theme="golden-stage"] .mode-list .channel-card,
+    html[data-theme="golden-stage"] .mode-mini .channel-card {
+      background: var(--card-bg);
+      border-color: #bd8b42;
+      box-shadow: 0 5px 10px rgba(34,12,8,.58), inset 0 1px 0 rgba(255,238,190,.18);
+    }
+
+    html[data-theme="golden-stage"] .mode-list .list-channel-title,
+    html[data-theme="golden-stage"] .page-info {
+      color: #ffe6a0 !important;
+    }
+
+    html[data-theme="golden-stage"] .video-card {
+      border-color: #bd8b42;
+      box-shadow: 0 9px 22px rgba(34,12,8,.68), 0 0 0 2px rgba(255,230,160,.2);
+    }
+
+    html[data-theme="golden-stage"] .info-box {
+      background:
+        repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 2px, rgba(39,18,8,.045) 2px 4px),
+        linear-gradient(180deg, #95633b 0%, #70452d 52%, #4b2b1e 100%);
+      border-color: #bd8b42;
+      box-shadow: 0 7px 16px rgba(34,12,8,.58), inset 0 1px 0 rgba(255,238,190,.2);
+    }
+
+    html[data-theme="golden-stage"] .info-title,
+    html[data-theme="golden-stage"] .info-row,
+    html[data-theme="golden-stage"] .info-row span,
+    html[data-theme="golden-stage"] footer {
+      color: #ffe6a0;
+    }
+
+    html[data-theme="golden-stage"] .manage-btn,
+    html[data-theme="golden-stage"] .action-btn,
+    html[data-theme="golden-stage"] .arrow-btn {
+      border-color: #fff0bd;
+      box-shadow: 0 4px 9px rgba(43,19,7,.48), inset 0 1px 0 rgba(255,255,255,.38);
+    }
+
+    html[data-theme="golden-stage"] .ticker-wrap {
+      border-color: #bd8b42;
+      box-shadow: 0 4px 12px rgba(43,19,7,.5);
+    }
+
+    html[data-theme="golden-stage"] .ticker-text { color: #ffe6a0; }
+
+    html[data-theme="golden-stage"] .modal-box,
+    html[data-theme="golden-stage"] .channel-input-group,
+    html[data-theme="golden-stage"] .cat-manager-box {
+      box-shadow: 0 8px 24px rgba(0,0,0,.55);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html[data-theme="golden-stage"] *,
+      html[data-theme="golden-stage"] *::before,
+      html[data-theme="golden-stage"] *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--header-bg);
+      border: 3px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px 24px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.8);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .brand-title {
+      font-family: 'Arial Black', Impact, sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: var(--accent-color);
+      text-shadow: 0 3px 8px rgba(0,0,0,0.95);
+      font-style: italic;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .theme-select {
+      background: #ffffff;
+      color: #111111;
+      border: 2px solid var(--border-color);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .manage-btn {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: 2px solid #fff;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      transition: all 0.2s;
+    }
+
+    .manage-btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+
+    /* Breaking News Ticker Bar */
+    .ticker-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--ticker-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+
+    .ticker-badge {
+      background: #e60000;
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 8px 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      z-index: 2;
+      box-shadow: 4px 0 10px rgba(0,0,0,0.5);
+    }
+
+    .ticker-content {
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .ticker-text {
+      display: inline-block;
+      white-space: nowrap;
+      padding-left: 100%;
+      animation: tickerAnimation 35s linear infinite;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--accent-color);
+    }
+
+    .ticker-text img.ticker-logo {
+      height: 22px;
+      vertical-align: middle;
+      margin: 0 8px;
+      display: inline-block;
+      filter: drop-shadow(0px 1px 3px rgba(0,0,0,0.8));
+    }
+
+    @keyframes tickerAnimation {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-100%, 0, 0); }
+    }
+
+    .app-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 20px;
+      max-width: 1700px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (max-width: 1100px) { .app-layout { grid-template-columns: 1fr; } }
+
+    .player-section { display: flex; flex-direction: column; gap: 15px; }
+
+    .video-card {
+      background: #000;
+      border: 4px solid var(--border-color);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+      position: relative;
+    }
+
+    .video-wrapper { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; }
+    video { width: 100%; height: 100%; object-fit: contain; }
+
+    .live-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: #e60000;
+      color: #fff;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 3px 10px;
+      border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      z-index: 5;
+    }
+
+    .live-badge::before {
+      content: '';
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      background: #fff;
+      border-radius: 50%;
+      animation: blink 1s infinite alternate;
+    }
+
+    @keyframes blink { 0% { opacity: 0.3; } 100% { opacity: 1; } }
+
+    .info-box {
+      background: var(--info-bg);
+      border: 3px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.7);
+    }
+
+    .info-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent-color);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 6px;
+    }
+
+    .info-row { font-size: 14px; margin-bottom: 6px; color: #f7d6de; }
+    .info-row span { color: var(--accent-color); font-weight: 600; }
+
+    .status-tag {
+      font-size: 11px;
+      background: rgba(0,0,0,0.5);
+      color: #ffeb3b;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    .action-controls-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .top-action-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .action-btn {
+      background: var(--btn-bg);
+      border: 2px solid var(--accent-color);
+      color: var(--btn-text);
+      padding: 9px 5px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+    /* Stream Switch Buttons Container */
+    .stream-switch-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .stream-switch-btn {
+      background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+      color: #fff;
+      border: 2px solid var(--border-color);
+      padding: 10px 5px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .stream-switch-btn.active-stream {
+      background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+      border-color: #fff !important;
+      box-shadow: 0 0 12px #28a745;
+    }
+
+    .stream-switch-btn:disabled {
+      background: #444 !important;
+      color: #888 !important;
+      border-color: #555 !important;
+      opacity: 0.35;
+      cursor: not-allowed;
+      box-shadow: none;
+      filter: grayscale(100%);
+    }
+
+    .stream-switch-btn:hover:not(:disabled) { filter: brightness(1.2); }
+
+    .channels-section { display: flex; flex-direction: column; gap: 15px; }
+
+    .categories-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: var(--header-bg);
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid var(--border-color);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cat-buttons-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .cat-btn {
+      background: var(--info-bg);
+      color: var(--accent-color);
+      border: 1px solid var(--border-color);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cat-btn.active, .cat-btn:hover {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border-color: #fff;
+      box-shadow: 0 0 12px var(--border-color);
+    }
+
+    .view-switcher {
+      display: flex;
+      gap: 5px;
+      background: rgba(0,0,0,0.4);
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .view-btn {
+      background: transparent;
+      color: var(--accent-color);
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .view-btn.active {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+    }
+
+    .channels-grid.mode-card {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 15px;
+      justify-content: stretch;
+      min-height: 330px;
+    }
+
+    @media (max-width: 900px) {
+      .channels-grid.mode-card { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 520px) {
+      .channels-grid.mode-card { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    .channels-grid.mode-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 330px;
+    }
+
+    .channels-grid.mode-mini {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 100px);
+      gap: 10px;
+      justify-content: start;
+      min-height: 330px;
+    }
+
+    .mode-card .channel-card {
+      width: 100%;
+      min-width: 0;
+      height: 150px;
+      background: var(--card-bg);
+      border: 4px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.8);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 6px 6px 6px;
+      text-align: center;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+      overflow: hidden;
+    }
+
+    /* HD BADGES */
+    .hd-style-ribbon {
+      position: absolute;
+      top: 6px;
+      right: -38px;
+      width: 130px;
+      text-align: center;
+      background: linear-gradient(135deg, #ff0055 0%, #b30000 100%);
+      color: #ffffff;
+      font-weight: normal;
+      font-size: 13px;
+      letter-spacing: 2px;
+      padding: 5px 0;
+      transform: rotate(45deg);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 1px 1px rgba(255,255,255,0.4);
+      z-index: 6;
+      text-transform: uppercase;
+      text-shadow: 0 1px 2px #000;
+      border-top: 1px solid #ff6699;
+      border-bottom: 1px solid #660000;
+    }
+
+    .hd-style-neon {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #00ffff;
+      border: 2px solid #00ffff;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 6px;
+      z-index: 6;
+      box-shadow: 0 0 10px #00ffff;
+      letter-spacing: 1px;
+    }
+
+    .hd-style-gold {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+      color: #1a0500;
+      border: 1px solid #fff;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      border-radius: 4px;
+      z-index: 6;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.8);
+      letter-spacing: 1px;
+    }
+
+    .hd-style-glass {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(6px);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 20px;
+      z-index: 6;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .mode-card .channel-card.is-live-match {
+      border: 4px solid #ff0055 !important;
+      box-shadow: 0 0 15px rgba(255, 0, 85, 0.7) !important;
+      animation: livePulse 2s infinite alternate;
+    }
+
+    @keyframes livePulse {
+      0% { border-color: #ff0055; box-shadow: 0 0 10px rgba(255,0,85,0.6); }
+      100% { border-color: #ffcc00; box-shadow: 0 0 20px rgba(255,204,0,0.9); }
+    }
+
+    .channel-number-badge {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      min-width: 20px;
+      height: 19px;
+      padding: 0 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 8, 3, .88);
+      color: var(--accent-color);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      font-size: 10px;
+      line-height: 1;
+      font-weight: 900;
+      z-index: 7;
+      box-shadow: 0 2px 5px rgba(0,0,0,.65);
+    }
+
+    .mode-list .channel-number-badge {
+      position: static;
+      flex: 0 0 22px;
+      margin-right: 2px;
+    }
+
+    .live-match-tag {
+      position: absolute;
+      top: 27px;
+      left: 5px;
+      background: #e60000;
+      color: #fff;
+      font-size: 8px;
+      font-weight: 900;
+      padding: 2px 5px;
+      border-radius: 3px;
+      z-index: 5;
+      text-transform: uppercase;
+    }
+
+    .mode-card .channel-card:hover {
+      transform: translateY(-4px) scale(1.03);
+      border-color: #ffffff;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9), 0 0 18px var(--border-color);
+    }
+
+    .channel-card.active { border-color: #00ffff !important; box-shadow: 0 0 18px #00ffff !important; }
+
+    .card-logo-wrapper { width: 100%; height: 95px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .card-logo { max-width: 92%; max-height: 92%; width: auto; height: auto; object-fit: contain; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.95)); }
+    .card-text-logo { font-size: 20px; font-weight: 900; color: #ffffff; text-shadow: 0 3px 6px rgba(0,0,0,0.9); line-height: 1.1; }
+
+    .card-name-bar { width: 100%; background: rgba(0, 0, 0, 0.85); padding: 4px 2px; border-radius: 6px; border-top: 1px solid var(--border-color); }
+    .card-name { font-size: 11px; font-weight: bold; color: var(--accent-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .mode-list .channel-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--info-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 15px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .mode-list .channel-card.is-live-match {
+      border-color: #ff0055;
+      background: linear-gradient(90deg, #59111e 0%, #800000 100%);
+    }
+
+    .mode-list .channel-card:hover { background: var(--header-bg); border-color: #fff; }
+    .mode-list .list-left { display: flex; align-items: center; gap: 15px; }
+    .mode-list .list-logo-img { width: 45px; height: 35px; object-fit: contain; }
+    .mode-list .list-channel-title { font-size: 14px; font-weight: bold; color: var(--accent-color); }
+    .mode-list .list-play-btn { background: var(--btn-bg); color: var(--btn-text); font-size: 12px; font-weight: bold; padding: 5px 12px; border-radius: 4px; border: none; }
+
+    .mode-mini .channel-card {
+      width: 100px;
+      height: 100px;
+      background: var(--card-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .mode-mini .card-logo-wrapper { height: 60px; }
+    .mode-mini .card-name { font-size: 9px; }
+
+    .pagination-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--header-bg);
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 2px solid var(--border-color);
+      margin-top: 5px;
+    }
+
+    .arrow-btn { background: var(--btn-bg); color: var(--btn-text); border: 1px solid #fff; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+    .arrow-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Admin Modal Styles */
+    .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.88); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+    .modal-box { background: var(--bg-color); border: 3px solid var(--border-color); border-radius: 12px; width: 100%; max-width: 950px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.95); }
+    .modal-header { padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; color: var(--accent-color); }
+
+    .admin-controls-bar { padding: 12px 15px; background: var(--header-bg); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; }
+    .search-input, .cat-add-input, .admin-filter-select, .hd-style-select, .mode-select-dropdown { background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 13px; width: 100%; outline: none; }
+    .admin-filter-select option, .hd-style-select option, .mode-select-dropdown option { background: #1c0207; color: #fff; }
+
+    .cat-manager-box {
+      background: var(--info-bg);
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cat-manager-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+
+    .cat-manage-item {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+
+    .cat-action-btn {
+      cursor: pointer;
+      font-size: 10px;
+      background: rgba(255,255,255,0.1);
+      padding: 2px 5px;
+      border-radius: 3px;
+      border: none;
+      color: #fff;
+    }
+    .cat-action-btn:hover { background: rgba(255,255,255,0.3); }
+
+    .modal-body { padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    
+    .channel-input-group { 
+      background: var(--info-bg); 
+      padding: 12px; 
+      border-radius: 8px; 
+      border: 1px solid var(--border-color); 
+      display: grid; 
+      grid-template-columns: 1.1fr 1.2fr; 
+      gap: 15px; 
+      align-items: start;
+    }
+
+    @media (max-width: 768px) { .channel-input-group { grid-template-columns: 1fr; } }
+
+    .edit-col-left { display: flex; flex-direction: column; gap: 8px; }
+    .edit-col-right { display: flex; flex-direction: column; gap: 8px; }
+
+    .slot-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .slot-input { width: 55px; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--accent-color); font-weight: bold; padding: 4px 6px; border-radius: 4px; text-align: center; outline: none; }
+    .slot-input:focus { border-color: #00ffff; box-shadow: 0 0 5px #00ffff; }
+    
+    .mode-select-dropdown { width: 90px; padding: 4px; font-size: 11px; font-weight: bold; border-color: var(--border-color); color: #00ffff; }
+
+    .delete-btn { background: #a31c1c; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+
+    .admin-field-label { font-size: 11px; font-weight: bold; color: var(--accent-color); margin-bottom: -4px; }
+    .channel-input-group input[type="text"] { background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; padding: 7px; border-radius: 4px; font-size: 12px; width: 100%; }
+
+    .logo-preview-inline { width: 35px; height: 25px; object-fit: contain; border: 1px solid var(--border-color); background: #000; border-radius: 3px; }
+
+    .categories-checkbox-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 4px; background: var(--bg-color); padding: 6px; border-radius: 6px; border: 1px solid var(--border-color); max-height: 80px; overflow-y: auto; }
+    .categories-checkbox-group label { font-size: 10px; color: var(--accent-color); display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+    .add-more-btn { background: linear-gradient(180deg, #28a745 0%, #1e7e34 100%); color: white; border: 1px solid #5cb85c; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center; margin-top: 5px; }
+    .modal-footer { padding: 12px 15px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .btn-save { background: var(--btn-bg); color: var(--btn-text); border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .btn-close { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+    .json-btn { background: #0275d8; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+
+    .create-lives-btn {
+      background: linear-gradient(135deg, #ff0055 0%, #ff5000 100%);
+      color: #fff;
+      border: 2px solid #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 900;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(255,0,85,0.6);
+      transition: all 0.2s;
+    }
+    .create-lives-btn:hover { filter: brightness(1.2); transform: scale(1.02); }
+
+    footer { margin-top: auto; text-align: center; padding: 20px 0 10px 0; color: var(--accent-color); font-weight: bold; font-size: 13px; }
+  
+    /* Refined original palettes — same theme IDs, more cohesive luxury color systems. */
+    [data-theme="mint-green"] {
+      --bg-color: #092b28;
+      --bg-gradient: linear-gradient(-45deg, #061b1b, #0b3833, #176b5a, #123f39, #082722);
+      --header-bg: linear-gradient(180deg, #1d5b4e 0%, #092b28 100%);
+      --border-color: #8dd8b7;
+      --accent-color: #d5f5df;
+      --card-bg: radial-gradient(ellipse at 50% 0%, #287e68 0%, #124b40 58%, #082722 100%);
+      --info-bg: linear-gradient(180deg, #246b59 0%, #124538 55%, #08251f 100%);
+      --btn-bg: linear-gradient(180deg, #d5f5df 0%, #76c9a2 52%, #31896d 100%);
+      --btn-text: #08251f;
+      --ticker-bg: #0b3833;
+    }
+
+    [data-theme="royal"] {
+      --bg-color: #07162e;
+      --bg-gradient: linear-gradient(-45deg, #030a1c, #0b1e42, #174a7b, #102d5c, #07162e);
+      --header-bg: linear-gradient(180deg, #173d70 0%, #061329 100%);
+      --border-color: #83c8ff;
+      --accent-color: #d9efff;
+      --card-bg: radial-gradient(ellipse at 50% 0%, #245b91 0%, #12345f 58%, #061329 100%);
+      --info-bg: linear-gradient(180deg, #194675 0%, #102b50 55%, #061329 100%);
+      --btn-bg: linear-gradient(180deg, #d9efff 0%, #72baff 52%, #286fc0 100%);
+      --btn-text: #061329;
+      --ticker-bg: #102d5c;
+    }
+
+    [data-theme="midnight-amethyst"] {
+      --bg-color: #160d2b;
+      --bg-gradient: linear-gradient(-45deg, #090619, #20113d, #48245f, #342052, #160d2b);
+      --header-bg: linear-gradient(180deg, #48265f 0%, #160d2b 100%);
+      --border-color: #d8a8ff;
+      --accent-color: #f0dcff;
+      --card-bg: radial-gradient(ellipse at 50% 0%, #693b83 0%, #3a2054 58%, #160d2b 100%);
+      --info-bg: linear-gradient(180deg, #512d68 0%, #2e1b46 55%, #120a22 100%);
+      --btn-bg: linear-gradient(180deg, #f0dcff 0%, #c28be8 52%, #8248ae 100%);
+      --btn-text: #190d29;
+      --ticker-bg: #28153f;
+    }
+
+    [data-theme="emerald-nebula"] {
+      --bg-color: #061f1b;
+      --bg-gradient: linear-gradient(-45deg, #03130f, #07352b, #08745b, #0b4c3c, #061f1b);
+      --header-bg: linear-gradient(180deg, #0d5945 0%, #041b16 100%);
+      --border-color: #70e0b2;
+      --accent-color: #d0ffeb;
+      --card-bg: radial-gradient(ellipse at 50% 0%, #168568 0%, #075440 58%, #031b16 100%);
+      --info-bg: linear-gradient(180deg, #12664e 0%, #084332 55%, #031b16 100%);
+      --btn-bg: linear-gradient(180deg, #d0ffeb 0%, #70e0b2 52%, #15936c 100%);
+      --btn-text: #03251b;
+      --ticker-bg: #084332;
+    }
+
+    [data-theme="golden-obsidian"] {
+      --bg-color: #17140e;
+      --bg-gradient: linear-gradient(-45deg, #090a0b, #1b1a15, #40351c, #282318, #101114);
+      --header-bg: linear-gradient(180deg, #514222 0%, #111114 100%);
+      --border-color: #d9b96e;
+      --accent-color: #fff0c2;
+      --card-bg: radial-gradient(ellipse at 50% 0%, #665329 0%, #342b18 58%, #111114 100%);
+      --info-bg: linear-gradient(180deg, #514222 0%, #292316 55%, #111114 100%);
+      --btn-bg: linear-gradient(180deg, #fff0c2 0%, #d9b96e 52%, #96702c 100%);
+      --btn-text: #17120a;
+      --ticker-bg: #292316;
+    }
+
+    [data-theme="ruby-sunset"] {
+      --bg-color: #230b16;
+      --bg-gradient: linear-gradient(-45deg, #10050c, #3b1022, #781d3b, #54152e, #230b16);
+      --header-bg: linear-gradient(180deg, #6d1d39 0%, #210914 100%);
+      --border-color: #e99aab;
+      --accent-color: #ffe0e8;
+      --card-bg: radial-gradient(ellipse at 50% 0%, #922c4c 0%, #58182f 58%, #210914 100%);
+      --info-bg: linear-gradient(180deg, #76213e 0%, #451329 55%, #1c0912 100%);
+      --btn-bg: linear-gradient(180deg, #ffe0e8 0%, #e99aab 52%, #b83d60 100%);
+      --btn-text: #2b0b18;
+      --ticker-bg: #451329;
+    }
+
+    /* Living ambient background: slow light currents move behind every theme. */
+    body {
+      position: relative;
+      isolation: isolate;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -24%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    body::before {
+      background:
+        radial-gradient(ellipse at 16% 24%, color-mix(in srgb, var(--accent-color) 25%, transparent) 0%, transparent 33%),
+        radial-gradient(ellipse at 82% 28%, color-mix(in srgb, var(--accent-color) 18%, transparent) 0%, transparent 31%),
+        radial-gradient(ellipse at 58% 82%, color-mix(in srgb, var(--border-color) 17%, transparent) 0%, transparent 35%);
+      filter: blur(34px);
+      opacity: .62;
+      transform: translate3d(-2%, 0, 0) scale(1);
+      animation: nxstAmbientDrift 26s ease-in-out infinite alternate;
+    }
+
+    body::after {
+      inset: -40%;
+      background:
+        linear-gradient(112deg, transparent 38%, color-mix(in srgb, var(--accent-color) 8%, transparent) 48%, transparent 58%),
+        radial-gradient(ellipse at 50% 50%, transparent 42%, color-mix(in srgb, var(--border-color) 7%, transparent) 100%);
+      opacity: .42;
+      animation: nxstAmbientSweep 38s linear infinite;
+    }
+
+    @keyframes nxstAmbientDrift {
+      0%   { transform: translate3d(-3%, -1%, 0) scale(.98); }
+      50%  { transform: translate3d(2%, 2%, 0) scale(1.04); }
+      100% { transform: translate3d(-1%, 3%, 0) scale(1.01); }
+    }
+
+    @keyframes nxstAmbientSweep {
+      0%   { transform: translate3d(-5%, -2%, 0) rotate(0deg); }
+      100% { transform: translate3d(5%, 2%, 0) rotate(8deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body::before, body::after {
+        animation: none !important;
+      }
+    }
+
+
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title" id="brandTitle">NXST IPTV - STANDARD EDITION</div>
+    <div class="header-controls"><button class="manage-btn" id="nxstHomeLogin" onclick="nxstHomeLogin()">🔐 Login as NXST User</button></div>
+  </header>
+
+  <!-- News Ticker Marquee -->
+  <div class="ticker-wrap">
+    <div class="ticker-badge">🔴 NOTICE</div>
+    <div class="ticker-content">
+      <div class="ticker-text" id="displayTickerText">
+        Welcome to NXST IPTV - Premium Luxury Edition | Live Sports Links: [png:https://upload.wikimedia.org/wikipedia/commons/4/4c/T_Sports_logo.svg] [png:https://i.postimg.cc/brsfp7HT/st1s.png] [png:https://i.postimg.cc/nrR7QDmL/wwww.png] [png:https://i.postimg.cc/6Qv0JYvh/stb3.png] [png:https://static.wikia.nocookie.net/logopedia/images/3/37/Star-sports-select-1.png/revision/latest?cb=20230128174436] [png:https://static.wikia.nocookie.net/logopedia/images/3/3b/Star-sports-select-2.png] [png:https://www.sonypicturesnetworks.com/images/logos/SONY_SportsTen1_SD_Logo_CLR.png] [png:https://www.sonypicturesnetworks.com/images/logos/SONY_SportsTen2_SD_Logo_CLR.png] [png:https://www.sonypicturesnetworks.com/images/logos/Sony_Sports_Ten_3_Hindi.png] [png:https://www.sonypicturesnetworks.com/images/logos/SONY_SportsTen5_SD_Logo_CLR.png] [png:https://upload.wikimedia.org/wikipedia/en/e/e4/PTV_Sports.png] [png:https://upload.wikimedia.org/wikipedia/en/0/0c/A_Sports_Logo.png] [png:https://ethnicchannels.com/images/channeldetail/ten-cricket/ten-ckt-logo.png] [png:https://yt3.googleusercontent.com/ytc/AIdro_mMJL3P-vcTLif2h4V_S17ksNozzOICQKXMMmfdowlx9Q=s900-c-k-c0x00ffffff-no-rj] [png:https://thumb.wikimedia.org/wikipedia/en/thumb/7/7e/Cricbuzz_Logo.svg/1280px-Cricbuzz_Logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=thumbnail] [png:https://s21.q4cdn.com/819998841/files/doc_news/2024/May/Willow-logo-transparent-cb.png] [png:https://i.postimg.cc/ZvP6nxxD/Gemini-Generated-Image-nzu0nfnzu0nfnzu0-removebg-preview.png] [png:https://static.vecteezy.com/system/resources/previews/027/127/453/non_2x/espn-logo-espn-icon-transparent-free-png.png] [png:https://upload.wikimedia.org/wikipedia/commons/e/e5/Logo_bein_sports_1.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original] [png:https://upload.wikimedia.org/wikipedia/commons/c/c9/Logo_bein_sports_2.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original] [png:https://upload.wikimedia.org/wikipedia/commons/c/c4/Logo_bein_sports_3.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original] [png:https://i.postimg.cc/mZXg2GyT/Gemini-Generated-Image-h5qf27h5qf27h5qf-removebg-preview.png] [png:https://i.postimg.cc/gj8pK11p/skycricket.jpg] [png:https://i.postimg.cc/FKzQ6Yws/skyfootball.jpg] [png:https://i.postimg.cc/JskYLCb6/skymainevent.jpg] [png:https://i.postimg.cc/k2KsHFCJ/05a76e01-6182-4ad0-8603-ac935ee3a612.jpg] [png:https://static.wikia.nocookie.net/logopedia/images/3/30/TNT_Sports_1_Stacked.svg] [png:https://static.wikia.nocookie.net/logopedia/images/b/be/TNT_Sports_2_Stacked.svg] [png:https://static.wikia.nocookie.net/logopedia/images/0/07/TNT_Sports_3_Stacked.svg] [png:https://logos-world.net/wp-content/uploads/2022/05/Eurosport-Emblem.png] | Enjoy Uninterrupted HD Streaming!
+      </div>
+    </div>
+  </div>
+
+  <div class="app-layout">
+    <div class="player-section">
+      <div class="video-card">
+        <div class="live-badge">LIVE</div>
+        <div class="video-wrapper">
+          <video id="videoPlayer" controls autoplay muted></video>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-title" id="infoChannelName">Select Channel</div>
+        <div class="info-row"><span>Active Stream:</span> <strong id="infoSource" style="color:#fff;">None</strong></div>
+        <div class="info-row"><span>Status:</span> <span class="status-tag" id="streamStatus">Idle</span></div>
+
+        <div class="action-controls-wrapper">
+          <div class="top-action-btns">
+            <button class="action-btn" onclick="toggleFullscreen()">📺 Fullscreen</button>
+            <button class="action-btn" onclick="retryCurrentStream()">🔄 Reload Stream</button>
+          </div>
+
+          <div class="stream-switch-container">
+            <button class="stream-switch-btn" id="streamBtn1" onclick="switchStream(1)">Stream 1</button>
+            <button class="stream-switch-btn" id="streamBtn2" onclick="switchStream(2)">Stream 2</button>
+            <button class="stream-switch-btn" id="streamBtn3" onclick="switchStream(3)">Stream 3</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="channels-section">
+      <div class="categories-bar">
+        <div class="cat-buttons-group" id="categoriesBar"></div>
+        <div class="view-switcher">
+          <button class="view-btn active" id="viewCardBtn" onclick="setChannelViewMode('mode-card')" title="Card View">🎴 Card</button>
+          <button class="view-btn" id="viewListBtn" onclick="setChannelViewMode('mode-list')" title="List View">☰ List</button>
+          <button class="view-btn" id="viewMiniBtn" onclick="setChannelViewMode('mode-mini')" title="Mini Grid">📱 Mini</button>
+        </div>
+      </div>
+
+      <div class="channels-container-wrapper">
+        <div class="channels-grid mode-card" id="channelsGrid"></div>
+
+        <div class="pagination-controls" id="paginationControls" style="display: none;">
+          <button class="arrow-btn" id="prevBtn" onclick="changePage(-1)" disabled>◀ Previous</button>
+          <span class="page-info" id="pageIndicator" style="color: var(--accent-color); font-weight:bold; font-size:13px;">Page 1 of 1</span>
+          <button class="arrow-btn" id="nextBtn" onclick="changePage(1)" disabled>Next ▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    NXST IPTV © NXST Tech Entertainment || 2026
+  </footer>
+
+
+  </div>
+
+  <script>
+
+    function nxstHomeLogin() {
+      const target = 'http://192.168.0.227:8765/NXST_IPTV_Premium.html';
+      window.location.href = target;
+    }
+
+    // Data Setup (Standard Edition)
+    const embeddedData = {"categories":["SPORTS","NEWS","ENTERTAINMENT","BANGLADESH","HINDI","MOVIES","MUSIC","DOCUMENTARY","KIDS","SONY CHANNELS"],"unifiedChannels":[{"id":1792684964211,"slot":1,"name":"Discovery Kids","logo":"https://upload.wikimedia.org/wikipedia/commons/b/be/Discovery_Kids_%282009%29.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["KIDS"],"standardLocked":true},{"id":1,"slot":1,"name":"T SPORT","logo":"https://upload.wikimedia.org/wikipedia/commons/4/4c/T_Sports_logo.svg","textLogo":"T SPORTS","stream1":"http://103.89.248.10:8082/T-SPORTS/tracks-v1a1/mono.m3u8","stream2":"https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/dash/enc/b3b3fkmrbl/out/v1/1084d5c9a97a4c5b9f9554c88f486646/cenc.mpd","stream3":"http://103.16.24.4:8083/14.m3u8","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":false},{"id":1792870054841,"slot":1,"name":"Sony Television HD","logo":"https://www.sonypicturesnetworks.com/images/logos/SET-LOGO-HD.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT","HINDI","SONY CHANNELS"],"standardLocked":true},{"id":1792687517085,"slot":1,"name":"BTV","logo":"https://i.postimg.cc/w1ypLfS9/Gemini-Generated-Image-tw7ue7tw7ue7tw7u-(1).jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792875043803,"slot":1,"name":"BBC News","logo":"https://download.logo.wine/logo/BBC_News/BBC_News-Logo.wine.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["NEWS"],"standardLocked":true},{"id":1792875285337,"slot":1,"name":"SANGEET BANGLA","logo":"https://static.wikia.nocookie.net/logopedia/images/b/b5/Sangeet_Bangla_logo_with_slogan_2006.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["MUSIC"],"standardLocked":true},{"id":1792873996220,"slot":1,"name":"TRAVEL XP","logo":"https://static.wikia.nocookie.net/logopedia/images/5/5b/Travelxp_HD.svg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["DOCUMENTARY"],"standardLocked":true},{"id":1792684688529,"slot":2,"name":"Cartoon Network HD+","logo":"https://upload.wikimedia.org/wikipedia/commons/c/c5/Cartoon_Network_HD%2B_India_logo.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["KIDS"],"standardLocked":true},{"id":1792870103597,"slot":2,"name":"Sony Max","logo":"https://www.sonypicturesnetworks.com/images/logos/Sony_MAX-HD_WHITE.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT","HINDI","MOVIES","SONY CHANNELS"],"standardLocked":true},{"id":1792679922323,"slot":2,"name":"PTV Sports","logo":"https://upload.wikimedia.org/wikipedia/en/e/e4/PTV_Sports.png","textLogo":"TV","stream1":"http://103.89.248.10:8082/PTV/tracks-v1a1/mono.m3u8","stream2":"https://starsports1englishhd.bh292422.workers.dev/","stream3":"","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":false},{"id":1792687606453,"slot":2,"name":"ATN News","logo":"https://i.postimg.cc/gLYRQ6vX/atnnews.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792875422888,"slot":2,"name":"9XM Music","logo":"https://static.wikia.nocookie.net/logopedia/images/8/81/9xm_red.svg","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["MUSIC"],"standardLocked":true},{"id":1792875083415,"slot":2,"name":"Al Jazeera","logo":"https://logos-world.net/wp-content/uploads/2023/04/Al-Jazeera-Logo.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["NEWS"],"standardLocked":true},{"id":1792685414504,"slot":3,"name":"DURONTO TV","logo":"https://upload.wikimedia.org/wikipedia/en/d/d7/Duronto_TV_Logo.png?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["KIDS"],"standardLocked":true},{"id":1792680124232,"slot":3,"name":"A Sports","logo":"https://upload.wikimedia.org/wikipedia/en/0/0c/A_Sports_Logo.png","textLogo":"TV","stream1":"http://103.89.248.10:8082/A-SPORTS/tracks-v1a1/mono.m3u8","stream2":"https://s1.itcnbd.live/A-Sports/tracks-v1a1/mono.m3u8","stream3":"","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":false},{"id":1792687621469,"slot":3,"name":"ATN Bangla","logo":"https://i.postimg.cc/BPqDk1x8/atnbangla.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792874673758,"slot":3,"name":" Sony BBC Earth","logo":"https://www.sonypicturesnetworks.com/images/logos/SBBCE_LOGO_NEW_AI_SD.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["DOCUMENTARY","SONY CHANNELS"],"standardLocked":true},{"id":1792873145683,"slot":3,"name":"Discovery HD","logo":"https://static.wikia.nocookie.net/logopedia/images/b/b5/Discovery_Channel_2008.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["DOCUMENTARY"],"standardLocked":true},{"id":1792875487516,"slot":3,"name":"FON Music","logo":"https://static.wikia.nocookie.net/logopedia/images/b/b7/FON_MUSIC.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["MUSIC"],"standardLocked":true},{"id":1793884400206,"slot":3,"name":"Sony Max 1","categories":["ENTERTAINMENT","SONY CHANNELS"],"isHd":false,"hdStyle":"ribbon","logo":"https://www.sonypicturesnetworks.com/images/logos/Sony_MAX1.png","textLogo":"TV","standardLocked":true},{"id":2,"slot":4,"name":"Star Sports 1","logo":"https://i.postimg.cc/brsfp7HT/st1s.png","textLogo":"SS1","stream1":"https://s1.itcnbd.live/Star.Sports.1.HD/tracks-v1a1/mono.m3u8?remote=no_check_ip&token=2b53ec938e44f09748988cd724a354948609d508-d57b67c0b66a6af9-1794434559-1794420159","stream2":"http://103.89.248.10:8082/STAR-SPORTS-1/tracks-v1a1/mono.m3u8","stream3":"","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":false},{"id":1792685441997,"slot":4,"name":"Nick JR ","logo":"https://logos-world.net/wp-content/uploads/2021/09/Nick-Jr.-Logo-2009-present.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["KIDS"],"standardLocked":true},{"id":1792687671298,"slot":4,"name":"Ananda TV","logo":"https://i.postimg.cc/4HJtqhzn/anandotv.jpg","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["BANGLADESH"],"standardLocked":true},{"id":1792873754592,"slot":4,"name":"National Geographic","logo":"https://upload.wikimedia.org/wikipedia/commons/6/62/Logo_Chaine_National_Geographic_Channel.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["DOCUMENTARY"],"standardLocked":true},{"id":1792870221469,"slot":4,"name":"Sony Max 2","logo":"https://www.sonypicturesnetworks.com/images/logos/Sony_MAX2.png","textLogo":"TV","isHd":false,"hdStyle":"glass","categories":["ENTERTAINMENT","HINDI","MOVIES","SONY CHANNELS"],"standardLocked":true},{"id":1792871241399,"slot":5,"name":"Star Gold","logo":"https://images.seeklogo.com/logo-png/31/2/star-gold-logo-png_seeklogo-310758.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT","HINDI","MOVIES"],"standardLocked":true},{"id":3,"slot":5,"name":"Star Sports 2","logo":"https://i.postimg.cc/nrR7QDmL/wwww.png","textLogo":"SS2","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792685458404,"slot":5,"name":"Disney Channel","logo":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/2014_Disney_Channel_logo.svg/3840px-2014_Disney_Channel_logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["KIDS"],"standardLocked":true},{"id":1792687728390,"slot":5,"name":"DBC NEWS","logo":"https://i.postimg.cc/JtZMd2nh/Gemini-Generated-Image-xqkomyxqkomyxqko.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792873895156,"slot":5,"name":"Nat Geo Wild","logo":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Logo_Nat_Geo_Wild.svg/1280px-Logo_Nat_Geo_Wild.svg.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["DOCUMENTARY"],"standardLocked":true},{"id":1792872450474,"slot":6,"name":"& Pictures","logo":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/%26pictures.svg/3840px-%26pictures.svg.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT","HINDI","MOVIES"],"standardLocked":true},{"id":4,"slot":6,"name":"Star Sports 3","logo":"https://i.postimg.cc/6Qv0JYvh/stb3.png","textLogo":"SELECT 1","isHd":false,"hdStyle":"ribbon","categories":["SPORTS"],"standardLocked":true},{"id":1792687745894,"slot":6,"name":"Banglavision","logo":"https://i.postimg.cc/pyzR16Ty/Gemini-Generated-Image-um035um035um035u.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792874479074,"slot":6,"name":"Investigation Discovery","logo":"https://upload.wikimedia.org/wikipedia/commons/4/41/InvestigationDiscovery.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["DOCUMENTARY"],"standardLocked":true},{"id":1792684559521,"slot":6,"name":"POGO","logo":"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/49/POGO-logo.svg/3840px-POGO-logo.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["KIDS"],"standardLocked":true},{"id":1792871072071,"slot":7,"name":"Jalsha Movies","logo":"https://static.wikia.nocookie.net/etv-gspn-bangla/images/6/69/Jalsha_Movies_HD_alt.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT","MOVIES"],"standardLocked":true},{"id":5,"slot":7,"name":"Star Sports Select 1","logo":"https://static.wikia.nocookie.net/logopedia/images/3/37/Star-sports-select-1.png/revision/latest?cb=20230128174436","textLogo":"SELECT 2","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792687774338,"slot":7,"name":"Bijoy TV","logo":"https://i.postimg.cc/p5284nD5/bijoytv.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792874605450,"slot":7,"name":"Discovery Science","logo":"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/47/Discovery_Science_-_Logo_2012.svg/960px-Discovery_Science_-_Logo_2012.svg.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["DOCUMENTARY"],"standardLocked":true},{"id":1792878451480,"slot":7,"name":"Sonic","logo":"https://upload.wikimedia.org/wikipedia/commons/8/8a/Sonic-india-channel.png?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["KIDS"],"standardLocked":true},{"id":1792871199471,"slot":8,"name":"Star Plus","logo":"https://static.wikia.nocookie.net/logopedia/images/3/32/StarPlus_logo_%282018%29.png/","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT","HINDI"],"standardLocked":true},{"id":6,"slot":8,"name":"Star Sports Select 2","logo":"https://static.wikia.nocookie.net/logopedia/images/3/3b/Star-sports-select-2.png","textLogo":"TEN 1","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792687799538,"slot":8,"name":"Boishakhi TV","logo":"https://i.postimg.cc/c6w05bHC/Gemini-Generated-Image-vt9qyevt9qyevt9q.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792874879211,"slot":8,"name":"Animal Planet","logo":"https://upload.wikimedia.org/wikipedia/commons/2/20/2018_Animal_Planet_logo.svg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["DOCUMENTARY"],"standardLocked":true},{"id":1792684491533,"slot":8,"name":"SONY YAY","logo":"https://www.sonypicturesnetworks.com/images/logos/SONY%20YAY.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["KIDS","SONY CHANNELS"],"standardLocked":true},{"id":1792687833874,"slot":9,"name":"Channel I","logo":"https://i.postimg.cc/2LzvMB4h/channeli.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":7,"slot":9,"name":"Sony Ten 1","logo":"https://www.sonypicturesnetworks.com/images/logos/SONY_SportsTen1_SD_Logo_CLR.png","textLogo":"TEN 2","isHd":true,"hdStyle":"glass","categories":["SPORTS","SONY CHANNELS"],"standardLocked":true},{"id":1794414380390,"slot":9,"name":"Colors Cineplex Bolywood","categories":["ENTERTAINMENT"],"isHd":false,"hdStyle":"ribbon","logo":"https://jiotvimages.cdn.jio.com/dare_images/images/channel/a9e26cc44f2e0b63ac31cfbfc56eeae0.png","textLogo":"TV","standardLocked":true},{"id":1792870499057,"slot":10,"name":"Sony Pix","logo":"https://www.sonypicturesnetworks.com/images/logos/PIX%20SD.png","textLogo":"TV","isHd":false,"hdStyle":"glass","categories":["ENTERTAINMENT","MOVIES","SONY CHANNELS"],"standardLocked":true},{"id":1792687855658,"slot":10,"name":"Channel 9","logo":"https://i.postimg.cc/gLYRQ6vZ/channel9.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":8,"slot":10,"name":"Sony Ten 2","logo":"https://www.sonypicturesnetworks.com/images/logos/SONY_SportsTen2_SD_Logo_CLR.png","textLogo":"TEN 5","isHd":true,"hdStyle":"glass","categories":["SPORTS","SONY CHANNELS"],"standardLocked":true},{"id":1792869619094,"slot":11,"name":"Sony WAH","logo":"https://d2ljy97uzhlwv2.cloudfront.net/sonypicturesnetworksindia/logo/10_258.png","textLogo":"TV","isHd":false,"hdStyle":"glass","categories":["ENTERTAINMENT","HINDI","SONY CHANNELS"],"standardLocked":true},{"id":1792687869282,"slot":11,"name":"DEEPTO ","logo":"https://i.postimg.cc/23hrXK66/Gemini-Generated-Image-abqs44abqs44abqs.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792680254380,"slot":11,"name":"Ten Cricket","logo":"https://ethnicchannels.com/images/channeldetail/ten-cricket/ten-ckt-logo.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792677521042,"slot":11,"name":"Sony Ten 3","logo":"https://www.sonypicturesnetworks.com/images/logos/Sony_Sports_Ten_3_Hindi.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["SPORTS","SONY CHANNELS"],"standardLocked":true},{"id":1792871443952,"slot":12,"name":"Star Movies","logo":"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/STAR_Movies_logo.svg/3840px-STAR_Movies_logo.svg.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT","MOVIES"],"standardLocked":true},{"id":1792687888843,"slot":12,"name":"DESH TV","logo":"https://i.postimg.cc/t7yhY885/deshtv.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792677619566,"slot":12,"name":"Sony Ten 5","logo":"https://www.sonypicturesnetworks.com/images/logos/SONY_SportsTen5_SD_Logo_CLR.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS","SONY CHANNELS"],"standardLocked":true},{"id":1792871570284,"slot":13,"name":"COLORS HD","logo":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/19/Colors_TV_logo.svg/250px-Colors_TV_logo.svg.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT","HINDI"],"standardLocked":true},{"id":1792687936795,"slot":13,"name":"Ekhon TV","logo":"https://i.postimg.cc/G9rkH66X/ekhon.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792871651276,"slot":14,"name":"COLORS Bangla Cinema","logo":"https://static.wikia.nocookie.net/logopedia/images/8/8c/Colors_Bangla_Cinema.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["ENTERTAINMENT","MOVIES"],"standardLocked":true},{"id":1793562958470,"slot":14,"name":"Fox Sports","categories":["SPORTS"],"isHd":false,"hdStyle":"ribbon","logo":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/FOX_Sports_logo.svg/960px-FOX_Sports_logo.svg.png","textLogo":"TV","standardLocked":true},{"id":1792687996115,"slot":14,"name":"Ekushey TV","logo":"https://i.postimg.cc/z35nV440/ekushey.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792872937851,"slot":15,"name":"B4U Movies","logo":"https://static.wikia.nocookie.net/logopedia/images/1/1b/B4U_MOVIES_2014.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["ENTERTAINMENT","MOVIES"],"standardLocked":true},{"id":1792680459805,"slot":15,"name":"FOX Sports 501","logo":"https://yt3.googleusercontent.com/ytc/AIdro_mMJL3P-vcTLif2h4V_S17ksNozzOICQKXMMmfdowlx9Q=s900-c-k-c0x00ffffff-no-rj","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688012687,"slot":15,"name":"Gazi TV","logo":"https://i.postimg.cc/s1ypvbbK/gazi.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792872157597,"slot":16,"name":"Zee Bangla Cinema","logo":"https://static.cdnlogo.com/logos/z/84/zee-bangla-cinema_thumb.png","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["ENTERTAINMENT","MOVIES"],"standardLocked":true},{"id":1792680860154,"slot":16,"name":"CricBuzz Live","logo":"https://thumb.wikimedia.org/wikipedia/en/thumb/7/7e/Cricbuzz_Logo.svg/1280px-Cricbuzz_Logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=thumbnail","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688039571,"slot":16,"name":"Global TV","logo":"https://i.postimg.cc/t7yhY88M/globaltv.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792872958271,"slot":17,"name":"My Time","logo":"https://mytimemovienetwork.com/wp-content/uploads/elementor/thumbs/logo-white-ovbvbhqmsdprb6sqz8bdil61k1zcy8bv2whim3g1os.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT","MOVIES"],"standardLocked":true},{"id":1792879782614,"slot":17,"name":"Willow","categories":["SPORTS"],"isHd":true,"hdStyle":"glass","logo":"https://static.wikia.nocookie.net/logopedia/images/7/7d/Willow_2023_stacked.svg/revision/latest?cb=20240927132511","textLogo":"TV","standardLocked":true},{"id":1792688153628,"slot":17,"name":"Independent TV","logo":"https://i.postimg.cc/6TwdyFFj/independenttv.jpg","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["BANGLADESH"],"standardLocked":true},{"id":1792870340353,"slot":18,"name":"Sony Aath","logo":"https://www.sonypicturesnetworks.com/images/logos/SONY%20AATH.png","textLogo":"TV","isHd":false,"hdStyle":"glass","categories":["ENTERTAINMENT","SONY CHANNELS"],"standardLocked":true},{"id":1792862902382,"slot":18,"name":"Supersports Cricket","logo":"https://i.postimg.cc/ZvP6nxxD/Gemini-Generated-Image-nzu0nfnzu0nfnzu0-removebg-preview.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688169192,"slot":18,"name":"Jamuna TV","logo":"https://i.postimg.cc/SjqWJHHt/jamunatv.jpg","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["BANGLADESH"],"standardLocked":true},{"id":1793884425374,"slot":19,"name":"Sony SAB","categories":["ENTERTAINMENT","SONY CHANNELS"],"isHd":false,"hdStyle":"ribbon","logo":"https://www.sonypicturesnetworks.com/images/logos/SONY%20SAB%20SD.png","textLogo":"TV","standardLocked":true},{"id":1793885550171,"slot":19,"name":"Supersports La Liga ","categories":["SPORTS"],"isHd":false,"hdStyle":"ribbon","logo":"https://i.postimg.cc/21z1XDWt/Gemini-Generated-Image-sx9rfssx9rfssx9r-removebg-preview.png","textLogo":"TV","standardLocked":true},{"id":1792688351061,"slot":19,"name":"News 24","logo":"https://i.postimg.cc/BtsxXRRr/news24.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1793884448082,"slot":20,"name":"Sony PAL","categories":["ENTERTAINMENT","SONY CHANNELS"],"isHd":false,"hdStyle":"ribbon","logo":"https://www.sonypicturesnetworks.com/images/logos/SONY%20PAL.png","textLogo":"TV","standardLocked":true},{"id":1792681285880,"slot":20,"name":"Bein Sports 1 ","logo":"https://upload.wikimedia.org/wikipedia/commons/e/e5/Logo_bein_sports_1.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688400329,"slot":20,"name":"Nagorik TV","logo":"https://i.postimg.cc/xqYKcBWr/nagorik.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1793561746979,"slot":21,"name":"Sony Kal","categories":["ENTERTAINMENT","SONY CHANNELS"],"isHd":false,"hdStyle":"ribbon","logo":"https://i.postimg.cc/NKXTzBQ6/soni-cul-fn.png","textLogo":"TV","standardLocked":true},{"id":1792681286240,"slot":21,"name":"Bein Sports 2","logo":"https://upload.wikimedia.org/wikipedia/commons/c/c9/Logo_bein_sports_2.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688426113,"slot":21,"name":"Ekattor TV","logo":"https://i.postimg.cc/rzcSK77j/ekattortv.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792870832275,"slot":22,"name":"Star Jalsha","logo":"https://static.wikia.nocookie.net/logopedia/images/a/ac/Star_Jalsha_HD_2019_Chalo_Paltai.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT"],"standardLocked":true},{"id":1792681286556,"slot":22,"name":"Bein Sports 3","logo":"https://upload.wikimedia.org/wikipedia/commons/c/c4/Logo_bein_sports_3.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688514345,"slot":22,"name":"Maasranga TV","logo":"https://i.postimg.cc/F1mj7ww6/maasranga.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792871594112,"slot":23,"name":"COLORS Bangla","logo":"https://upload.wikimedia.org/wikipedia/commons/7/7b/Colors_Bangla.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT"],"standardLocked":true},{"id":1792683180480,"slot":23,"name":"Bein Xtra","logo":"https://i.postimg.cc/mZXg2GyT/Gemini-Generated-Image-h5qf27h5qf27h5qf-removebg-preview.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688549477,"slot":23,"name":"Mohona TV","logo":"https://i.postimg.cc/dDv8Lggz/mohonatv.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792869617934,"slot":24,"name":"Zee Cinema","logo":"https://resizer-acm.eco.astro.com.my/tr:w-256,q:85/https://divign0fdw3sv.cloudfront.net/Images/ChannelLogo/contenthub/490_144.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT"],"standardLocked":true},{"id":1792683180960,"slot":24,"name":"Sky Sports Cricket","logo":"https://i.postimg.cc/gj8pK11p/skycricket.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688637753,"slot":24,"name":"MY TV","logo":"https://i.postimg.cc/JtmbGS9V/mytv.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792872140589,"slot":25,"name":"Zee Bangla","logo":"https://images.seeklogo.com/logo-png/63/2/zee-bangla-logo-png_seeklogo-630697.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT"],"standardLocked":true},{"id":1792683181292,"slot":25,"name":"Sky Sports Football","logo":"https://i.postimg.cc/FKzQ6Yws/skyfootball.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688668438,"slot":25,"name":"RTV","logo":"https://i.postimg.cc/PNhmP0BH/rtv.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792874057009,"slot":26,"name":"HUM Masala","logo":"https://mir-s3-cdn-cf.behance.net/project_modules/max_632/a2b8c3190491277.65bb9e0eea3f5.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT"],"standardLocked":true},{"id":1792683181587,"slot":26,"name":"Sky Sports Main Event","logo":"https://i.postimg.cc/JskYLCb6/skymainevent.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688705926,"slot":26,"name":"NTV","logo":"https://i.postimg.cc/jCKzLBGb/ntv.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792874055601,"slot":27,"name":"HUM TV","logo":"https://crystalpng.com/wp-content/uploads/2025/04/hum-logo.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT"],"standardLocked":true},{"id":1792684097803,"slot":27,"name":"Sky Sports Premier League","logo":"https://i.postimg.cc/k2KsHFCJ/05a76e01-6182-4ad0-8603-ac935ee3a612.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792688760214,"slot":27,"name":"Nexus Television","logo":"https://i.postimg.cc/14j7wmPt/nexustv-(1).jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792874056233,"slot":28,"name":"HUM Sitaray","logo":"https://upload.wikimedia.org/wikipedia/en/e/e7/Hum_Sitaray_Logo.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["ENTERTAINMENT"],"standardLocked":true},{"id":1792862243109,"slot":28,"name":"TNT Sports 1","logo":"https://static.wikia.nocookie.net/logopedia/images/3/30/TNT_Sports_1_Stacked.svg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792866325173,"slot":28,"name":"Asian TV","logo":"https://i.postimg.cc/fJdCdY8Q/1d781236-0dbb-4d0e-98f2-89be48218788.jpg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["BANGLADESH"],"standardLocked":true},{"id":1792862296561,"slot":29,"name":"TNT Sports 2","logo":"https://static.wikia.nocookie.net/logopedia/images/b/be/TNT_Sports_2_Stacked.svg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792867040914,"slot":29,"name":"Ruposhi Bangla","logo":"https://i.postimg.cc/K4FnRCdm/Rupasi-bangla.jpg","textLogo":"TV","isHd":false,"hdStyle":"ribbon","categories":["BANGLADESH"],"standardLocked":true},{"id":1792862297117,"slot":30,"name":"TNT Sports 3","logo":"https://static.wikia.nocookie.net/logopedia/images/0/07/TNT_Sports_3_Stacked.svg","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792684775054,"slot":31,"name":"Eurosport","logo":"https://logos-world.net/wp-content/uploads/2022/05/Eurosport-Emblem.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true},{"id":1792680975211,"slot":32,"name":"ESPN","logo":"https://static.vecteezy.com/system/resources/previews/027/127/453/non_2x/espn-logo-espn-icon-transparent-free-png.png","textLogo":"TV","isHd":true,"hdStyle":"glass","categories":["SPORTS"],"standardLocked":true}],"liveMatches":[{"id":1794404260650,"isLive":true,"name":"LIVE 1","logo":"","textLogo":"LIVE 1","standardLocked":true},{"id":1794405689770,"isLive":true,"name":"LIVE 2","logo":"","textLogo":"LIVE 2","standardLocked":true},{"id":1794405875245,"isLive":true,"name":"LIVE Cricket 1","logo":"https://i.postimg.cc/TyV3JN7W/LIVE-CRICKET-removebg-preview.png","textLogo":"LIVE 3","standardLocked":true},{"id":1794406031025,"isLive":true,"name":"LIVE Cricket 2","logo":"https://i.postimg.cc/TyV3JN7W/LIVE-CRICKET-removebg-preview.png","textLogo":"LIVE 4","standardLocked":true},{"id":1794406158917,"isLive":true,"name":"LIVE Football 1","logo":"https://i.postimg.cc/WD35Mx1P/LIVE-FOOTBALL-removebg-preview.png","textLogo":"LIVE 5","standardLocked":true},{"id":1794406266704,"isLive":true,"name":"LIVE Football 2","logo":"https://i.postimg.cc/WD35Mx1P/LIVE-FOOTBALL-removebg-preview.png","textLogo":"LIVE 6","standardLocked":true},{"id":1794406326196,"isLive":true,"name":"LIVE Football 3","logo":"https://i.postimg.cc/WD35Mx1P/LIVE-FOOTBALL-removebg-preview.png","textLogo":"LIVE 7","standardLocked":true}],"tickerNotice":"Welcome to NXST IPTV - Premium Luxury Edition | Live Sports Links: [png:https://upload.wikimedia.org/wikipedia/commons/4/4c/T_Sports_logo.svg] [png:https://i.postimg.cc/brsfp7HT/st1s.png] [png:https://i.postimg.cc/nrR7QDmL/wwww.png] [png:https://i.postimg.cc/6Qv0JYvh/stb3.png] [png:https://static.wikia.nocookie.net/logopedia/images/3/37/Star-sports-select-1.png/revision/latest?cb=20230128174436] [png:https://static.wikia.nocookie.net/logopedia/images/3/3b/Star-sports-select-2.png] [png:https://www.sonypicturesnetworks.com/images/logos/SONY_SportsTen1_SD_Logo_CLR.png] [png:https://www.sonypicturesnetworks.com/images/logos/SONY_SportsTen2_SD_Logo_CLR.png] [png:https://www.sonypicturesnetworks.com/images/logos/Sony_Sports_Ten_3_Hindi.png] [png:https://www.sonypicturesnetworks.com/images/logos/SONY_SportsTen5_SD_Logo_CLR.png] [png:https://upload.wikimedia.org/wikipedia/en/e/e4/PTV_Sports.png] [png:https://upload.wikimedia.org/wikipedia/en/0/0c/A_Sports_Logo.png] [png:https://ethnicchannels.com/images/channeldetail/ten-cricket/ten-ckt-logo.png] [png:https://yt3.googleusercontent.com/ytc/AIdro_mMJL3P-vcTLif2h4V_S17ksNozzOICQKXMMmfdowlx9Q=s900-c-k-c0x00ffffff-no-rj] [png:https://thumb.wikimedia.org/wikipedia/en/thumb/7/7e/Cricbuzz_Logo.svg/1280px-Cricbuzz_Logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=thumbnail] [png:https://s21.q4cdn.com/819998841/files/doc_news/2024/May/Willow-logo-transparent-cb.png] [png:https://i.postimg.cc/ZvP6nxxD/Gemini-Generated-Image-nzu0nfnzu0nfnzu0-removebg-preview.png] [png:https://static.vecteezy.com/system/resources/previews/027/127/453/non_2x/espn-logo-espn-icon-transparent-free-png.png] [png:https://upload.wikimedia.org/wikipedia/commons/e/e5/Logo_bein_sports_1.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original] [png:https://upload.wikimedia.org/wikipedia/commons/c/c9/Logo_bein_sports_2.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original] [png:https://upload.wikimedia.org/wikipedia/commons/c/c4/Logo_bein_sports_3.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original] [png:https://i.postimg.cc/mZXg2GyT/Gemini-Generated-Image-h5qf27h5qf27h5qf-removebg-preview.png] [png:https://i.postimg.cc/gj8pK11p/skycricket.jpg] [png:https://i.postimg.cc/FKzQ6Yws/skyfootball.jpg] [png:https://i.postimg.cc/JskYLCb6/skymainevent.jpg] [png:https://i.postimg.cc/k2KsHFCJ/05a76e01-6182-4ad0-8603-ac935ee3a612.jpg] [png:https://static.wikia.nocookie.net/logopedia/images/3/30/TNT_Sports_1_Stacked.svg] [png:https://static.wikia.nocookie.net/logopedia/images/b/be/TNT_Sports_2_Stacked.svg] [png:https://static.wikia.nocookie.net/logopedia/images/0/07/TNT_Sports_3_Stacked.svg] [png:https://logos-world.net/wp-content/uploads/2022/05/Eurosport-Emblem.png] | Enjoy Uninterrupted HD Streaming! High Quality HD streams from [png:https://static.wikia.nocookie.net/logopedia/images/1/14/Airtel_Digital_TV_logo.svg] [png:https://static.wikia.nocookie.net/logopedia/images/f/f6/Sun_Direct-HD.png] [png:https://thumb.wikimedia.org/wikipedia/commons/thumb/2/29/Tata_Play_2022_logo.svg/3840px-Tata_Play_2022_logo.svg.png]","standardUnlocked":["1792679922323","1792680124232","2","1"]};
+
+    const EMBEDDED_DATA_VERSION = 'nxst-standard-nxst-premium-20261119200749374101';
+
+    if (localStorage.getItem('nxst_embedded_data_version') !== EMBEDDED_DATA_VERSION) {
+      localStorage.setItem('nightwave_categories', JSON.stringify(embeddedData.categories));
+      localStorage.setItem('nxst_multi_channels', JSON.stringify(embeddedData.unifiedChannels));
+      localStorage.setItem('nxst_live_matches', JSON.stringify(embeddedData.liveMatches || []));
+      localStorage.setItem('nxst_ticker_text', embeddedData.tickerNotice || '');
+      localStorage.setItem('nxst_embedded_data_version', EMBEDDED_DATA_VERSION);
+    }
+
+    const defaultCategories = embeddedData.categories;
+    let allCategories = JSON.parse(localStorage.getItem('nightwave_categories')) || defaultCategories;
+    let defaultUnifiedChannels = embeddedData.unifiedChannels;
+    let defaultTickerNotice = embeddedData.tickerNotice;
+
+    let unifiedChannels = JSON.parse(localStorage.getItem('nxst_multi_channels')) || defaultUnifiedChannels;
+    let liveMatches = JSON.parse(localStorage.getItem('nxst_live_matches')) || embeddedData.liveMatches || [];
+    let currentTickerNotice = localStorage.getItem('nxst_ticker_text') ?? defaultTickerNotice;
+    let standardUnlocked = JSON.parse(localStorage.getItem('nxst_standard_unlocked') || '[]');
+    let activeViewMode = localStorage.getItem('nxst_view_mode') || 'mode-card';
+
+    let currentCategory = allCategories.length > 0 ? allCategories[0] : 'SPORTS';
+    let currentActiveChannel = null;
+    let currentActiveStreamIndex = 1;
+    let currentPage = 1;
+    const itemsPerPage = 20;
+
+    // NXST Local HTML Auto-Save Bridge (requires start_nxst_iptv.bat)
+    let nxstAutoSaveTimer = null;
+    function showNxstAutoSaveStatus(message, ok = true) {
+      let badge = document.getElementById('nxstAutoSaveStatus');
+      if (!badge) {
+        badge = document.createElement('div');
+        badge.id = 'nxstAutoSaveStatus';
+        badge.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:99999;padding:8px 12px;border-radius:8px;font:12px/1.4 Arial,sans-serif;color:#fff;box-shadow:0 3px 14px #0005;max-width:85vw;';
+        document.body.appendChild(badge);
+      }
+      badge.style.background = ok ? '#237a42' : '#a62b35';
+      badge.textContent = message;
+    }
+    async function nxstSaveCurrentDataToHtml() {
+      if (document.documentElement.dataset.edition === 'standard') return;
+      const payload = {
+        categories: allCategories,
+        unifiedChannels: unifiedChannels,
+        liveMatches: liveMatches,
+        tickerNotice: currentTickerNotice ?? '',
+        standardUnlocked: standardUnlocked
+      };
+      try {
+        const response = await fetch('/api/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error(result.error || 'Save failed');
+        showNxstAutoSaveStatus('✓ মূল HTML ফাইলে অটো-সেভ হয়েছে');
+      } catch (error) {
+        showNxstAutoSaveStatus('⚠ HTML অটো-সেভ হয়নি — start_nxst_iptv.bat দিয়ে ওয়েবসাইট খুলুন', false);
+        console.error('NXST HTML auto-save error:', error);
+      }
+    }
+    function nxstScheduleHtmlSave() {
+      clearTimeout(nxstAutoSaveTimer);
+      nxstAutoSaveTimer = setTimeout(nxstSaveCurrentDataToHtml, 650);
+    }
+    // Any channel/category/live-match/ticker save made by existing Admin tools triggers a file save.
+    (function installNxstStorageSaveHook() {
+      const originalSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(key, value) {
+        originalSetItem.call(this, key, value);
+        if (this === localStorage && ['nightwave_categories', 'nxst_multi_channels', 'nxst_live_matches', 'nxst_ticker_text', 'nxst_standard_unlocked'].includes(key)) {
+          nxstScheduleHtmlSave();
+        }
+      };
+    })();
+
+
+    const video = document.getElementById('videoPlayer');
+    let hls = new Hls();
+    let shakaPlayer = null;
+
+    function applyTickerText() {
+      const tickerDisplay = document.getElementById('displayTickerText');
+      let formattedText = currentTickerNotice.replace(/\[png:(.*?)\]/g, '<img src="$1" class="ticker-logo" alt="logo">');
+      tickerDisplay.innerHTML = formattedText;
+      // Standard Edition has no Admin Panel ticker input; Premium does.
+      const tickerInput = document.getElementById('tickerInput');
+      if (tickerInput) tickerInput.value = currentTickerNotice;
+    }
+
+    function insertTickerPngTag() {
+      const input = document.getElementById('tickerInput');
+      const pngUrl = prompt("আপনার পিএনজি লোগো বা ডিটিএইচ লোগোর সরাসরি লিংকটি দিন:", "https://example.com/logo.png");
+      if (pngUrl && pngUrl.trim() !== '') {
+        const tag = ` [png:${pngUrl.trim()}] `;
+        input.value += tag;
+      }
+    }
+
+    function saveTickerNotice() {
+      const val = document.getElementById('tickerInput').value.trim();
+      if (val) {
+        currentTickerNotice = val;
+        localStorage.setItem('nxst_ticker_text', currentTickerNotice);
+        applyTickerText();
+        alert('টিক্যার নোটিশ সফলভাবে আপডেট করা হয়েছে!');
+      }
+    }
+
+    function applyGlobalHdStyle() {
+      const globalStyle = document.getElementById('globalHdStyleSelect').value;
+      syncCurrentModalInputs();
+      unifiedChannels.forEach(ch => { if (ch.isHd) ch.hdStyle = globalStyle; });
+      localStorage.setItem('nxst_multi_channels', JSON.stringify(unifiedChannels));
+      localStorage.setItem('nxst_standard_unlocked', JSON.stringify(standardUnlocked));
+      renderModalInputs();
+      renderChannels();
+      alert('সফলভাবে সমস্ত HD চ্যানেলের স্টাইল আপডেট করা হয়েছে!');
+    }
+
+    function setChannelViewMode(mode) {
+      activeViewMode = mode;
+      localStorage.setItem('nxst_view_mode', mode);
+
+      const grid = document.getElementById('channelsGrid');
+      grid.className = `channels-grid ${mode}`;
+
+      document.getElementById('viewCardBtn').classList.toggle('active', mode === 'mode-card');
+      document.getElementById('viewListBtn').classList.toggle('active', mode === 'mode-list');
+      document.getElementById('viewMiniBtn').classList.toggle('active', mode === 'mode-mini');
+
+      renderChannels();
+    }
+
+    function changeTheme(themeName) {
+      if (themeName === 'maroon') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', themeName);
+      localStorage.setItem('nightwave_theme', themeName);
+    }
+
+    const storedTheme = localStorage.getItem('nightwave_theme');
+    const savedTheme = (!storedTheme || storedTheme === 'maroon') ? 'golden-stage' : storedTheme;
+    if (document.getElementById('themeSelector')) { document.getElementById('themeSelector').value = savedTheme; changeTheme(savedTheme); }
+
+    function getCombinedChannelList() {
+      let sortedRegular = [...unifiedChannels].sort((a, b) => (Number(a.slot) || 0) - (Number(b.slot) || 0));
+      return [...liveMatches, ...sortedRegular];
+    }
+
+    function renderCategoryButtons() {
+      const bar = document.getElementById('categoriesBar');
+      bar.innerHTML = '';
+      if (!allCategories.includes(currentCategory)) {
+        currentCategory = allCategories.length > 0 ? allCategories[0] : '';
+      }
+      allCategories.forEach(cat => {
+        const isActive = currentCategory === cat ? 'active' : '';
+        bar.innerHTML += `<button class="cat-btn ${isActive}" onclick="filterCategory('${cat}')">${cat}</button>`;
+      });
+    }
+
+    function renderChannels() {
+      const grid = document.getElementById('channelsGrid');
+      grid.innerHTML = '';
+
+      // Live matches are shown ONLY in the SPORTS category.
+      // They are not included in any other category (Sony, Entertainment, etc.).
+      const isSportsCategory = String(currentCategory || '').trim().toUpperCase() === 'SPORTS';
+      const pinnedLiveChannels = isSportsCategory ? liveMatches : [];
+      const categoryChannels = unifiedChannels
+        .filter(c => !c.isLive && c.categories && c.categories.includes(currentCategory))
+        .sort((a, b) => (Number(a.slot) || 0) - (Number(b.slot) || 0));
+      let filtered = [...pinnedLiveChannels, ...categoryChannels];
+
+      const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const paginatedChannels = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+      paginatedChannels.forEach((ch, channelIndex) => {
+        const card = document.createElement('div');
+        const channelNumber = ch.isLive
+          ? (liveMatches.findIndex(item => item.id === ch.id) + 1)
+          : (Number(ch.slot) || (startIndex + channelIndex + 1));
+        const channelNumberHTML = `<span class="channel-number-badge">${channelNumber}</span>`;
+        const isActive = currentActiveChannel && ch.id === currentActiveChannel.id;
+        card.className = `channel-card ${isActive ? 'active' : ''} ${ch.isLive ? 'is-live-match' : ''}`;
+        card.onclick = () => {
+          let firstStream = 1;
+          if (ch.stream1 && ch.stream1.trim() !== '') firstStream = 1;
+          else if (ch.stream2 && ch.stream2.trim() !== '') firstStream = 2;
+          else if (ch.stream3 && ch.stream3.trim() !== '') firstStream = 3;
+          playChannel(ch, firstStream);
+        };
+
+        let liveBadgeHTML = ch.isLive ? `<div class="live-match-tag">🔴 LIVE</div>` : '';
+        let lockedBadgeHTML = ch.standardLocked ? `<div style="position:absolute;top:8px;right:8px;z-index:5;background:rgba(20,25,30,.92);border:1px solid #aeb9c2;color:#f1f5f8;padding:4px 7px;border-radius:5px;font-size:10px;font-weight:800;">🔒 LOCKED</div>` : '';
+
+        let hdBadgeHTML = '';
+        if (ch.isHd) {
+          let styleType = ch.hdStyle || 'ribbon';
+          if (styleType === 'ribbon') hdBadgeHTML = `<div class="hd-style-ribbon">HD</div>`;
+          else if (styleType === 'neon') hdBadgeHTML = `<div class="hd-style-neon">HD</div>`;
+          else if (styleType === 'gold') hdBadgeHTML = `<div class="hd-style-gold">HD</div>`;
+          else if (styleType === 'glass') hdBadgeHTML = `<div class="hd-style-glass">HD</div>`;
+        }
+
+        if (activeViewMode === 'mode-list') {
+          let logoSrc = ch.logo ? `<img src="${ch.logo}" class="list-logo-img" alt="${ch.name}">` : `<span style="font-weight:900; color:var(--accent-color); font-size:16px;">${ch.textLogo || 'LIVE'}</span>`;
+          card.innerHTML = `
+            <div class="list-left">
+              ${channelNumberHTML}
+              ${logoSrc}
+              <div class="list-channel-title">
+                ${ch.name} 
+                ${ch.isLive ? '<span style="color:#ff0055; font-size:11px;">[LIVE MATCH]</span>' : ''}
+                ${ch.isHd ? '<span style="background:#ff0055; color:#fff; font-size:9px; padding:2px 5px; border-radius:3px; margin-left:5px; font-weight:normal;">HD</span>' : ''}
+                ${ch.standardLocked ? '<span style="color:#d5dde3;font-size:10px;margin-left:6px;">🔒 LOCKED</span>' : ''}
+              </div>
+            </div>
+            <button class="list-play-btn">▶ PLAY</button>
+          `;
+        } else {
+          let logoContent = ch.logo 
+            ? `<div class="card-logo-wrapper"><img src="${ch.logo}" class="card-logo" alt="${ch.name}"></div>` 
+            : `<div class="card-logo-wrapper"><div class="card-text-logo">${ch.textLogo || ch.name}</div></div>`;
+
+          card.innerHTML = `
+            ${channelNumberHTML}
+            ${liveBadgeHTML}
+            ${lockedBadgeHTML}
+            ${hdBadgeHTML}
+            ${logoContent}
+            <div class="card-name-bar">
+              <div class="card-name">${ch.name}</div>
+            </div>
+          `;
+        }
+
+        grid.appendChild(card);
+      });
+
+      document.getElementById('pageIndicator').innerText = `Page ${currentPage} of ${totalPages}`;
+      document.getElementById('prevBtn').disabled = (currentPage === 1);
+      document.getElementById('nextBtn').disabled = (currentPage === totalPages);
+
+      const navControls = document.getElementById('paginationControls');
+      navControls.style.display = (filtered.length <= itemsPerPage) ? 'none' : 'flex';
+    }
+
+    function changePage(direction) {
+      currentPage += direction;
+      renderChannels();
+    }
+
+    function playChannel(ch, streamNum = 1) {
+      if (ch.standardLocked || (!ch.stream1 && !ch.stream2 && !ch.stream3)) {
+        alert('🔒 This channel is locked. Contact NXST administrator.');
+        return;
+      }
+      currentActiveChannel = ch;
+      
+      let targetUrl = '';
+      if (streamNum === 1) targetUrl = ch.stream1;
+      else if (streamNum === 2) targetUrl = ch.stream2;
+      else if (streamNum === 3) targetUrl = ch.stream3;
+
+      if (!targetUrl || targetUrl.trim() === '') {
+        if (ch.stream1 && ch.stream1.trim() !== '') { streamNum = 1; targetUrl = ch.stream1; }
+        else if (ch.stream2 && ch.stream2.trim() !== '') { streamNum = 2; targetUrl = ch.stream2; }
+        else if (ch.stream3 && ch.stream3.trim() !== '') { streamNum = 3; targetUrl = ch.stream3; }
+      }
+
+      currentActiveStreamIndex = streamNum;
+      document.getElementById('infoChannelName').innerText = ch.name;
+      renderChannels();
+      updateStreamButtonsUI();
+
+      if (targetUrl && targetUrl.trim() !== '') {
+        document.getElementById('infoSource').innerText = `${ch.name} (Stream ${streamNum})`;
+        document.getElementById('streamStatus').innerText = `🟢 Playing Stream ${streamNum}`;
+        document.getElementById('streamStatus').style.background = '#388e3c';
+        executeStreamUrl(targetUrl.trim(), streamNum);
+      } else {
+        document.getElementById('infoSource').innerText = 'No Stream Available';
+        document.getElementById('streamStatus').innerText = '❌ No Link Provided';
+        document.getElementById('streamStatus').style.background = '#d32f2f';
+        stopCurrentPlayback();
+      }
+    }
+
+    function switchStream(streamNum) {
+      if (!currentActiveChannel) {
+        alert('আগে যেকোনো একটি চ্যানেল সিলেক্ট করুন!');
+        return;
+      }
+      
+      let url = '';
+      if (streamNum === 1) url = currentActiveChannel.stream1;
+      else if (streamNum === 2) url = currentActiveChannel.stream2;
+      else if (streamNum === 3) url = currentActiveChannel.stream3;
+
+      if (!url || url.trim() === '') return;
+
+      playChannel(currentActiveChannel, streamNum);
+    }
+
+    function retryCurrentStream() {
+      if (currentActiveChannel) {
+        playChannel(currentActiveChannel, currentActiveStreamIndex);
+      }
+    }
+
+    function updateStreamButtonsUI() {
+      for (let i = 1; i <= 3; i++) {
+        const btn = document.getElementById(`streamBtn${i}`);
+        if (btn && currentActiveChannel) {
+          let link = '';
+          if (i === 1) link = currentActiveChannel.stream1;
+          else if (i === 2) link = currentActiveChannel.stream2;
+          else if (i === 3) link = currentActiveChannel.stream3;
+
+          const hasLink = link && link.trim() !== '';
+          btn.disabled = !hasLink;
+          btn.classList.toggle('active-stream', i === currentActiveStreamIndex && hasLink);
+        }
+      }
+    }
+
+    async function stopCurrentPlayback() {
+      try {
+        if (hls) {
+          hls.destroy();
+          hls = new Hls();
+        }
+      } catch (e) {
+        console.warn('HLS cleanup:', e);
+      }
+
+      if (shakaPlayer) {
+        try { await shakaPlayer.destroy(); }
+        catch (e) { console.warn('DASH cleanup:', e); }
+        shakaPlayer = null;
+      }
+
+      if (window.nxstMpegtsPlayer) {
+        try {
+          window.nxstMpegtsPlayer.pause();
+          window.nxstMpegtsPlayer.unload();
+          window.nxstMpegtsPlayer.detachMediaElement();
+          window.nxstMpegtsPlayer.destroy();
+        } catch (e) {
+          console.warn('MPEG-TS cleanup:', e);
+        }
+        window.nxstMpegtsPlayer = null;
+      }
+
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+    }
+
+    async function executeStreamUrl(streamUrl, streamNum) {
+      await stopCurrentPlayback();
+
+      const status = document.getElementById('streamStatus');
+      const setStatus = (message, ok = false) => {
+        status.innerText = message;
+        status.style.background = ok ? '#388e3c' : '#d32f2f';
+      };
+
+      // Detect formats from the URL path (ignores query strings and URL fragments).
+      // Extensionless URLs are treated as HLS by default, which also supports
+      // authorized Worker/proxy endpoints that return an HLS playlist.
+      let path = '';
+      try { path = new URL(streamUrl, window.location.href).pathname.toLowerCase(); }
+      catch (_) { path = streamUrl.split(/[?#]/)[0].toLowerCase(); }
+
+      const isDash = /\.mpd$/.test(path);
+      const isHls = /\.m3u8$/.test(path) || !/\.(mp4|m4v|webm|ogv|ogg|mp3|m4a|ts|mts|m2ts)$/.test(path);
+      const isTs = /\.(ts|mts|m2ts)$/.test(path);
+      const isNative = /\.(mp4|m4v|webm|ogv|ogg|mp3|m4a)$/.test(path);
+
+      // MPEG-DASH (including encrypted streams only with provider-authorized DRM).
+      if (isDash) {
+        if (!window.shaka || !shaka.Player.isBrowserSupported()) {
+          setStatus('❌ This browser does not support DASH playback');
+          return;
+        }
+        try {
+          shaka.polyfill.installAll();
+          shakaPlayer = new shaka.Player(video);
+
+          const licenseUrl = (currentActiveChannel?.drmLicenseUrl || '').trim();
+          const keySystem = currentActiveChannel?.drmKeySystem || 'com.widevine.alpha';
+          if (licenseUrl) {
+            shakaPlayer.configure({ drm: { servers: { [keySystem]: licenseUrl } } });
+          }
+
+          shakaPlayer.addEventListener('error', (event) => {
+            const err = event.detail || {};
+            console.error('Shaka playback error:', err);
+            setStatus(`❌ DASH error (${err.code || 'unknown'}). Check stream/CORS/DRM settings.`);
+          });
+
+          await shakaPlayer.load(streamUrl);
+          setStatus(`🟢 DASH Stream ${streamNum} loaded`, true);
+          video.play().catch(e => console.log('Autoplay:', e));
+        } catch (err) {
+          console.error('DASH load failed:', err);
+          setStatus(`❌ DASH load failed (${err.code || 'check console/CORS/DRM'})`);
+        }
+        return;
+      }
+
+      // HLS playlist (.m3u8 or an extensionless endpoint that serves HLS).
+      if (isHls) {
+        if (window.Hls && Hls.isSupported()) {
+          hls = new Hls({
+            manifestLoadingTimeOut: 12000,
+            levelLoadingTimeOut: 12000,
+            fragLoadingTimeOut: 20000
+          });
+          hls.loadSource(streamUrl);
+          hls.attachMedia(video);
+
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            setStatus(`🟢 HLS Stream ${streamNum} loaded`, true);
+            video.play().catch(e => console.log('Autoplay:', e));
+          });
+          hls.on(Hls.Events.ERROR, (evt, data) => {
+            if (data.fatal) {
+              console.warn('Fatal HLS error:', data);
+              setStatus(`❌ HLS error (${data.details || data.type || 'unknown'}); checking backup...`);
+              autoSwitchToNextStream(streamNum);
+            }
+          });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = streamUrl;
+          video.onerror = () => {
+            setStatus('❌ Native HLS playback failed; check URL/CORS/codec.');
+            autoSwitchToNextStream(streamNum);
+          };
+          video.play().catch(e => console.log('Playback:', e));
+        } else {
+          setStatus('❌ HLS is not supported in this browser');
+        }
+        return;
+      }
+
+      // Raw MPEG-TS is not the same as an HLS playlist. Use mpegts.js where
+      // supported; the server must permit browser requests (CORS) and use a
+      // browser-decodable video/audio codec.
+      if (isTs) {
+        if (window.mpegts && mpegts.isSupported()) {
+          try {
+            window.nxstMpegtsPlayer = mpegts.createPlayer({
+              type: 'mpegts',
+              isLive: true,
+              url: streamUrl
+            }, {
+              enableWorker: true,
+              lazyLoad: false,
+              liveBufferLatencyChasing: true
+            });
+            window.nxstMpegtsPlayer.attachMediaElement(video);
+            window.nxstMpegtsPlayer.load();
+            window.nxstMpegtsPlayer.play().catch(e => console.log('TS playback:', e));
+            setStatus(`🟢 MPEG-TS Stream ${streamNum} loading`, true);
+            window.nxstMpegtsPlayer.on(mpegts.Events.ERROR, (type, detail, info) => {
+              console.error('MPEG-TS error:', type, detail, info);
+              setStatus('❌ MPEG-TS playback failed; check CORS, codec and stream URL.');
+              autoSwitchToNextStream(streamNum);
+            });
+          } catch (err) {
+            console.error('MPEG-TS setup failed:', err);
+            setStatus('❌ Could not initialize MPEG-TS playback');
+          }
+        } else {
+          setStatus('❌ This browser cannot play raw MPEG-TS through the available player');
+        }
+        return;
+      }
+
+      // Browser-native files: MP4/M4V, WebM, Ogg, MP3 and M4A.
+      if (isNative) {
+        video.src = streamUrl;
+        video.onerror = () => {
+          setStatus('❌ File format/codec not supported, or the server blocked playback.');
+          autoSwitchToNextStream(streamNum);
+        };
+        video.onloadedmetadata = () => setStatus(`🟢 File Stream ${streamNum} loaded`, true);
+        video.play().catch(e => console.log('Native playback:', e));
+        return;
+      }
+
+      setStatus('❌ Unsupported file extension. Try HLS (.m3u8), DASH (.mpd), MP4, WebM or TS.');
+    }
+
+    function autoSwitchToNextStream(failedStreamNum) {
+      if (!currentActiveChannel) return;
+      
+      let candidateStreams = [];
+      if (currentActiveChannel.stream1 && currentActiveChannel.stream1.trim() !== '') candidateStreams.push(1);
+      if (currentActiveChannel.stream2 && currentActiveChannel.stream2.trim() !== '') candidateStreams.push(2);
+      if (currentActiveChannel.stream3 && currentActiveChannel.stream3.trim() !== '') candidateStreams.push(3);
+
+      if (candidateStreams.length <= 1) return;
+
+      let currentIndex = candidateStreams.indexOf(failedStreamNum);
+      let nextIndex = (currentIndex + 1) % candidateStreams.length;
+      let nextStreamNum = candidateStreams[nextIndex];
+
+      document.getElementById('streamStatus').innerText = `⚡ Auto-switching to Stream ${nextStreamNum}...`;
+      document.getElementById('streamStatus').style.background = '#ff9800';
+      
+      setTimeout(() => {
+        playChannel(currentActiveChannel, nextStreamNum);
+      }, 1500);
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      currentPage = 1;
+      renderCategoryButtons();
+      renderChannels();
+    }
+
+    function toggleFullscreen() {
+      if (video.requestFullscreen) video.requestFullscreen();
+      else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+    }
+
+    function openModal() {
+      rpE1npL4QURHMPfKjt3wfbJzW6LwmWVCT6();
+      populateAdminCategoryFilter();
+      renderModalInputs();
+      document.getElementById('linkModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('linkModal').style.display = 'none';
+    }
+
+    function populateAdminCategoryFilter() {
+      const select = document.getElementById('adminCatFilter');
+      const currentSelected = select.value;
+      
+      select.innerHTML = '';
+      allCategories.forEach(cat => {
+        select.innerHTML += `<option value="${cat}">${cat}</option>`;
+      });
+
+      if (currentSelected && allCategories.includes(currentSelected)) {
+        select.value = currentSelected;
+      } else if (allCategories.length > 0) {
+        select.value = allCategories[0];
+      }
+    }
+
+    function openLivesModal() {
+      renderLivesModalInputs();
+      document.getElementById('livesModal').style.display = 'flex';
+    }
+
+    function closeLivesModal() {
+      document.getElementById('livesModal').style.display = 'none';
+    }
+
+    function renderLivesModalInputs() {
+      const container = document.getElementById('livesModalInputs');
+      container.innerHTML = '';
+
+      if (liveMatches.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#aaa; font-size:13px;">বর্তমানে কোনো লাইভ ইভেন্ট স্লট নেই। নিচের বাটনে ক্লিক করে নতুন লাইভ ইভেন্ট যোগ করুন।</div>`;
+        return;
+      }
+
+      liveMatches.forEach((match, index) => {
+        const group = document.createElement('div');
+        group.className = 'channel-input-group';
+        group.style.borderColor = '#ff0055';
+
+        let logoPreview = match.logo ? `<img src="${match.logo}" class="logo-preview-inline" alt="preview">` : `<span style="font-size:10px; color:#aaa;">No Logo</span>`;
+
+        group.innerHTML = `
+          <div class="edit-col-left">
+            <div class="slot-row">
+              <span style="font-size:13px; font-weight:900; color:#ff0055;">🔥 Live #${index + 1}</span>
+              <button class="delete-btn" onclick="removeLiveSlot(${match.id})">🗑️ Delete Live</button>
+            </div>
+            
+            <div>
+              <span class="admin-field-label">Live Event Title:</span>
+              <input type="text" id="live_name_${match.id}" value="${match.name}" placeholder="e.g. LIVE 1 - BAN vs IND">
+            </div>
+
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="admin-field-label">Banner / Logo URL:</span>
+                ${logoPreview}
+              </div>
+              <input type="text" id="live_logo_${match.id}" value="${match.logo || ''}" placeholder="Image URL (PNG/JPG)">
+            </div>
+          </div>
+
+          <div class="edit-col-right">
+            <div>
+              <span class="admin-field-label" style="color:#2ecc71;">🔗 Live Stream 1:</span>
+              <input type="text" id="live_stream1_${match.id}" value="${match.stream1 || ''}" placeholder="https://.../live1.m3u8">
+            </div>
+
+            <div>
+              <span class="admin-field-label" style="color:#3498db;">🔗 Live Stream 2:</span>
+              <input type="text" id="live_stream2_${match.id}" value="${match.stream2 || ''}" placeholder="https://.../live2.m3u8">
+            </div>
+
+            <div>
+              <span class="admin-field-label" style="color:#e67e22;">🔗 Live Stream 3:</span>
+              <input type="text" id="live_stream3_${match.id}" value="${match.stream3 || ''}" placeholder="https://.../live3.m3u8">
+            </div>
+          </div>
+        `;
+        container.appendChild(group);
+      });
+    }
+
+    function addNewLiveSlot() {
+      syncCurrentLivesInputs();
+      const newId = Date.now();
+      const liveCount = liveMatches.length + 1;
+
+      liveMatches.push({
+        id: newId,
+        isLive: true,
+        name: `Live ${liveCount}`,
+        logo: '',
+        textLogo: `LIVE ${liveCount}`,
+        stream1: '',
+        stream2: '',
+        stream3: ''
+      });
+
+      renderLivesModalInputs();
+      const body = document.getElementById('livesModalInputs');
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function removeLiveSlot(id) {
+      syncCurrentLivesInputs();
+      liveMatches = liveMatches.filter(m => m.id !== id);
+      renderLivesModalInputs();
+    }
+
+    function syncCurrentLivesInputs() {
+      liveMatches.forEach(m => {
+        const nameInput = document.getElementById(`live_name_${m.id}`);
+        const logoInput = document.getElementById(`live_logo_${m.id}`);
+        const s1Input = document.getElementById(`live_stream1_${m.id}`);
+        const s2Input = document.getElementById(`live_stream2_${m.id}`);
+        const s3Input = document.getElementById(`live_stream3_${m.id}`);
+
+        if (nameInput) m.name = nameInput.value;
+        if (logoInput) m.logo = logoInput.value;
+        if (s1Input) m.stream1 = s1Input.value;
+        if (s2Input) m.stream2 = s2Input.value;
+        if (s3Input) m.stream3 = s3Input.value;
+      });
+    }
+
+    function saveLiveMatches() {
+      syncCurrentLivesInputs();
+      localStorage.setItem('nxst_live_matches', JSON.stringify(liveMatches));
+      closeLivesModal();
+      renderChannels();
+      alert('সফলভাবে সমস্ত লাইভ ইভেন্ট সেভ করা হয়েছে!');
+    }
+
+    function rpE1npL4QURHMPfKjt3wfbJzW6LwmWVCT6() {
+      const container = document.getElementById('adminCatManagerList');
+      container.innerHTML = '';
+
+      allCategories.forEach((cat) => {
+        const item = document.createElement('div');
+        item.className = 'cat-manage-item';
+        item.innerHTML = `
+          <span>${cat}</span>
+          <button class="cat-action-btn" onclick="editCategoryName('${cat}')">✏️ Edit</button>
+          <button class="cat-action-btn" style="color:#ff6b6b;" onclick="deleteCategory('${cat}')">🗑️ Delete</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function editCategoryName(oldCat) {
+      const newCat = prompt(`"${oldCat}" ক্যাটাগরির নতুন নাম লিখুন:`, oldCat);
+      if (!newCat || newCat.trim() === '' || newCat.trim().toUpperCase() === oldCat) return;
+
+      const formattedNew = newCat.trim().toUpperCase();
+      if (allCategories.includes(formattedNew)) {
+        alert('এই নামের ক্যাটাগরি ইতিমধ্যে রয়েছে!');
+        return;
+      }
+
+      syncCurrentModalInputs();
+      const index = allCategories.indexOf(oldCat);
+      if (index !== -1) allCategories[index] = formattedNew;
+
+      unifiedChannels.forEach(ch => {
+        if (ch.categories && ch.categories.includes(oldCat)) {
+          const idx = ch.categories.indexOf(oldCat);
+          ch.categories[idx] = formattedNew;
+        }
+      });
+
+      localStorage.setItem('nightwave_categories', JSON.stringify(allCategories));
+      localStorage.setItem('nxst_multi_channels', JSON.stringify(unifiedChannels));
+      localStorage.setItem('nxst_standard_unlocked', JSON.stringify(standardUnlocked));
+
+      if (currentCategory === oldCat) currentCategory = formattedNew;
+
+      renderCategoryButtons();
+      rpE1npL4QURHMPfKjt3wfbJzW6LwmWVCT6();
+      populateAdminCategoryFilter();
+      renderModalInputs();
+    }
+
+    function deleteCategory(catToDelete) {
+      if (!confirm(`আপনি কি সত্যি "${catToDelete}" ক্যাটাগরি সম্পূর্ণ মুছে ফেলতে চান?`)) return;
+
+      syncCurrentModalInputs();
+      allCategories = allCategories.filter(c => c !== catToDelete);
+
+      unifiedChannels.forEach(ch => {
+        if (ch.categories) ch.categories = ch.categories.filter(c => c !== catToDelete);
+      });
+
+      localStorage.setItem('nightwave_categories', JSON.stringify(allCategories));
+      localStorage.setItem('nxst_multi_channels', JSON.stringify(unifiedChannels));
+      localStorage.setItem('nxst_standard_unlocked', JSON.stringify(standardUnlocked));
+
+      currentCategory = allCategories.length > 0 ? allCategories[0] : '';
+
+      renderCategoryButtons();
+      rpE1npL4QURHMPfKjt3wfbJzW6LwmWVCT6();
+      populateAdminCategoryFilter();
+      renderModalInputs();
+    }
+
+    function addNewCategory() {
+      const input = document.getElementById('newCategoryInput');
+      const catName = input.value.trim().toUpperCase();
+
+      if (!catName) { alert('ক্যাটাগরির নাম লিখুন!'); return; }
+      if (allCategories.includes(catName)) { alert('এই ক্যাটাগরি ইতিমধ্যে রয়েছে!'); return; }
+
+      syncCurrentModalInputs();
+      allCategories.push(catName);
+      localStorage.setItem('nightwave_categories', JSON.stringify(allCategories));
+      input.value = '';
+      
+      renderCategoryButtons();
+      rpE1npL4QURHMPfKjt3wfbJzW6LwmWVCT6();
+      populateAdminCategoryFilter();
+      renderModalInputs();
+    }
+
+    function syncCurrentModalInputs() {
+      const selectedAdminCat = document.getElementById('adminCatFilter')?.value || (allCategories.length > 0 ? allCategories[0] : 'SPORTS');
+      
+      let categoryChannels = unifiedChannels.filter(c => c.categories && c.categories.includes(selectedAdminCat));
+      categoryChannels.sort((a, b) => (Number(a.slot) || 0) - (Number(b.slot) || 0));
+
+      categoryChannels.forEach((ch) => {
+        const slotInput = document.getElementById(`slot_${ch.id}`);
+        const modeInput = document.getElementById(`mode_${ch.id}`);
+        const nameInput = document.getElementById(`name_${ch.id}`);
+        const logoInput = document.getElementById(`logo_${ch.id}`);
+        const s1Input = document.getElementById(`stream1_${ch.id}`);
+        const s2Input = document.getElementById(`stream2_${ch.id}`);
+        const s3Input = document.getElementById(`stream3_${ch.id}`);
+        const drmLicenseInput = document.getElementById(`drmLicenseUrl_${ch.id}`);
+        const drmKeySystemInput = document.getElementById(`drmKeySystem_${ch.id}`);
+        const hdCheckbox = document.getElementById(`isHd_${ch.id}`);
+        const hdStyleSelect = document.getElementById(`hdStyle_${ch.id}`);
+        const standardUnlockInput = document.getElementById(`standardUnlock_${ch.id}`);
+
+        const selectedCats = [];
+        const checkboxes = document.querySelectorAll(`.cat_checkbox_${ch.id}:checked`);
+        checkboxes.forEach(cb => selectedCats.push(cb.value));
+
+        if (nameInput) ch.name = nameInput.value;
+        if (logoInput) ch.logo = logoInput.value;
+        if (s1Input) ch.stream1 = s1Input.value;
+        if (s2Input) ch.stream2 = s2Input.value;
+        if (s3Input) ch.stream3 = s3Input.value;
+        if (drmLicenseInput) ch.drmLicenseUrl = drmLicenseInput.value.trim();
+        if (drmKeySystemInput) ch.drmKeySystem = drmKeySystemInput.value;
+        if (hdCheckbox) ch.isHd = hdCheckbox.checked;
+        if (hdStyleSelect) ch.hdStyle = hdStyleSelect.value;
+        if (standardUnlockInput) {
+          const key = String(ch.id);
+          standardUnlocked = standardUnlockInput.checked ? [...new Set([...standardUnlocked.map(String), key])] : standardUnlocked.map(String).filter(x => x !== key);
+        }
+        if (selectedCats.length > 0) ch.categories = selectedCats;
+
+        let targetSlot = slotInput ? parseInt(slotInput.value) : ch.slot;
+        if (isNaN(targetSlot) || targetSlot < 1) targetSlot = 1;
+
+        ch.newTargetSlot = targetSlot;
+        ch.actionMode = modeInput ? modeInput.value : 'shift';
+      });
+
+      categoryChannels.forEach(ch => {
+        let oldSlot = ch.slot;
+        let newSlot = ch.newTargetSlot;
+
+        if (oldSlot !== newSlot) {
+          if (ch.actionMode === 'switch') {
+            let targetChannel = categoryChannels.find(c => c.slot === newSlot && c.id !== ch.id);
+            if (targetChannel) {
+              targetChannel.slot = oldSlot;
+              targetChannel.newTargetSlot = oldSlot;
+            }
+            ch.slot = newSlot;
+
+          } else {
+            categoryChannels = categoryChannels.filter(c => c.id !== ch.id);
+            let insertIndex = Math.max(0, Math.min(newSlot - 1, categoryChannels.length));
+            categoryChannels.splice(insertIndex, 0, ch);
+
+            categoryChannels.forEach((c, idx) => {
+              c.slot = idx + 1;
+              c.newTargetSlot = c.slot;
+            });
+          }
+        }
+      });
+
+      categoryChannels.forEach(ch => {
+        delete ch.newTargetSlot;
+        delete ch.actionMode;
+      });
+
+      unifiedChannels.sort((a, b) => (Number(a.slot) || 0) - (Number(b.slot) || 0));
+    }
+
+    function renderModalInputs() {
+      const container = document.getElementById('modalInputs');
+      const searchQuery = (document.getElementById('adminSearchInput')?.value || '').toLowerCase().trim();
+      const selectedAdminCat = document.getElementById('adminCatFilter')?.value || (allCategories.length > 0 ? allCategories[0] : '');
+      
+      let activeList = unifiedChannels.filter(ch => ch.categories && ch.categories.includes(selectedAdminCat));
+      activeList.sort((a, b) => (Number(a.slot) || 0) - (Number(b.slot) || 0));
+
+      container.innerHTML = '';
+
+      if (activeList.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#aaa; font-size:13px;">"${selectedAdminCat}" ক্যাটাগরিতে কোনো চ্যানেল নেই। নতুন চ্যানেল যোগ করতে নিচের বাটনে ক্লিক করুন।</div>`;
+        return;
+      }
+
+      activeList.forEach((ch) => {
+        if (!ch.categories) ch.categories = [];
+        if (searchQuery && !ch.name.toLowerCase().includes(searchQuery)) return;
+
+        const group = document.createElement('div');
+        group.className = 'channel-input-group';
+        group.id = `group_${ch.id}`;
+
+        let checkboxesHTML = '';
+        allCategories.forEach(cat => {
+          const isChecked = ch.categories.includes(cat) ? 'checked' : '';
+          checkboxesHTML += `<label><input type="checkbox" class="cat_checkbox_${ch.id}" value="${cat}" ${isChecked}> ${cat}</label>`;
+        });
+
+        let logoPreview = ch.logo ? `<img src="${ch.logo}" class="logo-preview-inline" alt="preview">` : `<span style="font-size:10px; color:#aaa;">No Logo</span>`;
+        let hdChecked = ch.isHd ? 'checked' : '';
+        let currentHdStyle = ch.hdStyle || 'ribbon';
+
+        group.innerHTML = `
+          <div class="edit-col-left">
+            <div class="slot-row">
+              <div style="display:flex; align-items:center; gap:5px;">
+                <span class="admin-field-label">Slot #:</span>
+                <input type="number" id="slot_${ch.id}" class="slot-input" value="${ch.slot || 1}">
+                <select id="mode_${ch.id}" class="mode-select-dropdown" title="Choose Shift (push remaining down) or Switch (direct swap with target slot)">
+                  <option value="shift">↕️ Shift</option>
+                  <option value="switch">🔀 Switch</option>
+                </select>
+              </div>
+              <button class="delete-btn" onclick="removeSlot(${ch.id})">🗑️ Delete</button>
+            </div>
+            
+            <div>
+              <span class="admin-field-label">Channel Name:</span>
+              <input type="text" id="name_${ch.id}" value="${ch.name}" placeholder="Channel Name">
+            </div>
+
+            <div style="background: rgba(255, 0, 85, 0.15); padding: 8px; border-radius: 6px; border: 1px solid #ff0055; display:flex; flex-direction:column; gap:6px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="isHd_${ch.id}" ${hdChecked} style="width:16px; height:16px; cursor:pointer;">
+                <label for="isHd_${ch.id}" style="font-size:12px; font-weight:bold; color:#ff3377; cursor:pointer;">🚩 Enable High Definition (HD Badge)</label>
+              </div>
+              <div>
+                <span class="admin-field-label" style="font-size:10px;">Select HD Badge Design Style:</span>
+                <select id="hdStyle_${ch.id}" class="hd-style-select">
+                  <option value="ribbon" ${currentHdStyle === 'ribbon' ? 'selected' : ''}>🔴 Classic Red Corner Ribbon</option>
+                  <option value="neon" ${currentHdStyle === 'neon' ? 'selected' : ''}>⚡ Modern Cyan Neon Badge</option>
+                  <option value="gold" ${currentHdStyle === 'gold' ? 'selected' : ''}>👑 Golden Luxury Stamp</option>
+                  <option value="glass" ${currentHdStyle === 'glass' ? 'selected' : ''}>✨ Dark Glassmorphism Pill</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="admin-field-label">Logo Image URL:</span>
+                ${logoPreview}
+              </div>
+              <input type="text" id="logo_${ch.id}" value="${ch.logo || ''}" placeholder="Image URL (PNG/SVG)">
+            </div>
+
+            <div>
+              <span class="admin-field-label">Categories:</span>
+              <div class="categories-checkbox-group">${checkboxesHTML}</div>
+            </div>
+          </div>
+
+          <div class="edit-col-right">
+            <div style="padding:9px;background:rgba(255,193,7,.10);border:1px solid #c99b28;border-radius:6px;display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <input type="checkbox" id="standardUnlock_${ch.id}" ${standardUnlocked.includes(String(ch.id)) || standardUnlocked.includes(ch.id) ? 'checked' : ''} style="width:17px;height:17px;">
+              <label for="standardUnlock_${ch.id}" style="font-size:12px;font-weight:bold;color:#f5d77c;">🔓 Allow this channel in Standard Edition</label>
+            </div>
+            <div>
+              <span class="admin-field-label" style="color:#2ecc71;">🔗 Stream 1 (Primary Link):</span>
+              <input type="text" id="stream1_${ch.id}" value="${ch.stream1 || ''}" placeholder="https://.../stream1.m3u8">
+            </div>
+
+            <div>
+              <span class="admin-field-label" style="color:#3498db;">🔗 Stream 2 (Backup 1):</span>
+              <input type="text" id="stream2_${ch.id}" value="${ch.stream2 || ''}" placeholder="https://.../stream2.m3u8">
+            </div>
+
+            <div>
+              <span class="admin-field-label" style="color:#e67e22;">🔗 Stream 3 (Backup 2):</span>
+              <input type="text" id="stream3_${ch.id}" value="${ch.stream3 || ''}" placeholder="https://.../stream3.m3u8 or .mpd">
+            </div>
+
+            <div style="background:rgba(2,117,216,0.12); padding:9px; border:1px solid #0275d8; border-radius:6px; display:flex; flex-direction:column; gap:6px;">
+              <span class="admin-field-label" style="color:#70baff;">🔐 DASH / CENC DRM (optional; authorized license only)</span>
+              <input type="text" id="drmLicenseUrl_${ch.id}" value="${ch.drmLicenseUrl || ''}" placeholder="Authorized DRM license server URL">
+              <select id="drmKeySystem_${ch.id}" class="hd-style-select">
+                <option value="com.widevine.alpha" ${(ch.drmKeySystem || 'com.widevine.alpha') === 'com.widevine.alpha' ? 'selected' : ''}>Google Widevine</option>
+                <option value="com.microsoft.playready" ${ch.drmKeySystem === 'com.microsoft.playready' ? 'selected' : ''}>Microsoft PlayReady</option>
+              </select>
+              <span style="font-size:10px;color:#aaa;">Encrypted CENC streams need a valid license URL from the content provider. This player does not bypass DRM.</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(group);
+      });
+    }
+
+    function addNewSlot() {
+      syncCurrentModalInputs();
+      const newId = Date.now();
+      const selectedAdminCat = document.getElementById('adminCatFilter')?.value || (allCategories.length > 0 ? allCategories[0] : 'SPORTS');
+
+      const catChannels = unifiedChannels.filter(c => c.categories && c.categories.includes(selectedAdminCat));
+      const nextSlot = catChannels.length > 0 ? Math.max(...catChannels.map(c => Number(c.slot) || 0)) + 1 : 1;
+
+      unifiedChannels.push({ 
+        id: newId, 
+        slot: nextSlot, 
+        name: `Channel ${nextSlot}`, 
+        categories: [selectedAdminCat], 
+        isHd: false,
+        hdStyle: document.getElementById('globalHdStyleSelect')?.value || 'ribbon',
+        stream1: '', stream2: '', stream3: '', 
+        logo: '', textLogo: 'TV' 
+      });
+
+      renderModalInputs();
+      const body = document.getElementById('modalInputs');
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function removeSlot(id) {
+      syncCurrentModalInputs();
+      unifiedChannels = unifiedChannels.filter(c => c.id !== id);
+      
+      allCategories.forEach(cat => {
+        let catChs = unifiedChannels.filter(c => c.categories && c.categories.includes(cat));
+        catChs.sort((a, b) => (Number(a.slot) || 0) - (Number(b.slot) || 0));
+        catChs.forEach((c, idx) => c.slot = idx + 1);
+      });
+
+      renderModalInputs();
+    }
+
+    async function saveChannels() {
+      // First collect every field currently being edited in the selected category.
+      syncCurrentModalInputs();
+
+      // Save the complete channel array, not only the currently selected category.
+      localStorage.setItem('nxst_multi_channels', JSON.stringify(unifiedChannels));
+      localStorage.setItem('nxst_standard_unlocked', JSON.stringify(standardUnlocked));
+
+      // Wait for the local server to write the updated data back into the main HTML.
+      await nxstSaveCurrentDataToHtml();
+
+      closeModal();
+      renderChannels();
+      alert('সফলভাবে সব ক্যাটাগরির চ্যানেল পরিবর্তন সেভ করা হয়েছে!');
+    }
+
+    function exportJSONBackup() {
+      syncCurrentModalInputs();
+      syncCurrentLivesInputs();
+      const data = { 
+        categories: allCategories, 
+        unifiedChannels: unifiedChannels, 
+        liveMatches: liveMatches,
+        tickerNotice: currentTickerNotice
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "NXST_IPTV_PremiumLuxury_Backup.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importJSONBackup(event) {
+      const fileReader = new FileReader();
+      fileReader.onload = function (e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (parsed.categories) { allCategories = parsed.categories; localStorage.setItem('nightwave_categories', JSON.stringify(allCategories)); }
+          if (parsed.unifiedChannels) { unifiedChannels = parsed.unifiedChannels; localStorage.setItem('nxst_multi_channels', JSON.stringify(unifiedChannels)); }
+          if (parsed.liveMatches) { liveMatches = parsed.liveMatches; localStorage.setItem('nxst_live_matches', JSON.stringify(liveMatches)); }
+          if (parsed.tickerNotice) { currentTickerNotice = parsed.tickerNotice; localStorage.setItem('nxst_ticker_text', currentTickerNotice); applyTickerText(); }
+
+          renderCategoryButtons();
+          renderChannels();
+          rpE1npL4QURHMPfKjt3wfbJzW6LwmWVCT6();
+          populateAdminCategoryFilter();
+          renderModalInputs();
+          alert('সফলভাবে ব্যাকআপ রিস্টোর করা হয়েছে!');
+        } catch (err) {
+          alert('ভুল ফাইল ফরম্যাট!');
+        }
+      };
+      fileReader.readAsText(event.target.files[0]);
+    }
+
+    // Initial Load
+    applyTickerText();
+    setChannelViewMode(activeViewMode);
+    renderCategoryButtons();
+    renderChannels();
+  </script>
+</body>
+</html>
